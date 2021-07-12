@@ -1,32 +1,24 @@
-group 'com.epam.esm.config'
-version '1.0-SNAPSHOT'
+apply plugin: 'org.flywaydb.flyway'
 
-def props = new Properties()
-file("./src/main/resources/application.properties").withInputStream { props.load(it) }
-
-if (props.getProperty("spring.profiles.active") == "dev") {
-    file("./src/main/resources/application-dev.properties").withInputStream { props.load(it) }
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 }
-
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath "gradle.plugin.org.flywaydb:gradle-plugin-publishing:7.10.0"
-    }
-}
-
-apply plugin: "org.flywaydb.flyway"
 
 flyway {
-    driver = props.getProperty("datasource.driver")
-    url = props.getProperty("datasource.url-flyway")
-    user = props.getProperty("datasource.username")
-    password = props.getProperty("datasource.password")
+    driver = 'org.postgresql.Driver'
+    url = 'jdbc:postgresql://localhost:54321/rest'
+    user = 'rest'
+    password = 'rest'
 
     schemas = ['gifts']
     locations = ['classpath:/db/migrations']
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
 }

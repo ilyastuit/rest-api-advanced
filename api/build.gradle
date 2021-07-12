@@ -1,10 +1,16 @@
-group 'com.epam.esm.api'
-version '1.0-SNAPSHOT'
+apply plugin: 'com.bmuschko.docker-remote-api'
+apply plugin: 'application'
 
-apply plugin: 'war'
+application {
+    mainClassName = 'com.epam.esm.RestApiAdvancedApplication'
+}
 
-war {
-    archiveName 'rest-api-basics.war'
+bootJar {
+    archiveFileName = "rest-api-advanced.${archiveExtension.get()}"
+}
+
+jar {
+    enabled = false
 }
 
 dependencies {
@@ -12,4 +18,6 @@ dependencies {
     implementation project(':service')
     implementation project(':repository')
     implementation project(':entity')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 }

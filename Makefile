@@ -1,6 +1,6 @@
 up: docker-up
 down: docker-down
-restart-app: build-app restart-tomcat
+restart-app: build-app restart-app-container
 init: build-app docker-build docker-up migrate
 
 build-app:
@@ -24,5 +24,5 @@ docker-up:
 docker-down:
 	docker-compose down --remove-orphans
 
-restart-tomcat:
-	docker-compose restart tomcat
+restart-app-container:
+	docker-compose restart application
