@@ -1,10 +1,17 @@
-group 'com.epam.esm.repository'
-version '1.0-SNAPSHOT'
-
 dependencies {
     implementation project(':entity')
     implementation project(':config')
 
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
     testImplementation "org.flywaydb:flyway-core:7.10.0"
     testImplementation 'org.flywaydb.flyway-test-extensions:flyway-test:7.0.0'
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
 }
