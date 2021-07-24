@@ -42,6 +42,20 @@ INSERT INTO gifts.gift_certificate_tag (id, gift_certificate_id, tag_id) VALUES 
 INSERT INTO gifts.gift_certificate_tag (id, gift_certificate_id, tag_id) VALUES (13, 5, 8);
 INSERT INTO gifts.gift_certificate_tag (id, gift_certificate_id, tag_id) VALUES (14, 5, 9);
 
+INSERT INTO users.list (id, email, password, create_date, last_update_date) VALUES (1, 'admin@mail.ru', '123', '2020-10-09 10:48:23', '2021-02-01 08:48:23');
+INSERT INTO users.list (id, email, password, create_date, last_update_date) VALUES (2, 'user@mail.ru', '123', '2020-10-09 10:48:23', '2021-02-01 08:48:23');
+INSERT INTO users.list (id, email, password, create_date, last_update_date) VALUES (3, 'moderator@mail.ru', '123', '2021-02-09 16:48:23', '2021-04-01 08:48:23');
+INSERT INTO users.list (id, email, password, create_date, last_update_date) VALUES (4, 'newcome@mail.ru', '123', '2020-07-24 16:48:23', '2021-05-10 14:48:23');
+
+INSERT INTO orders.gift_certificate (id, price, status, user_id, gift_certificate_id, order_date, last_update_date) VALUES (1, 200.21, 'paid', 1, 1, '2020-10-09 10:48:23', '2021-02-01 08:48:23');
+INSERT INTO orders.gift_certificate (id, price, status, user_id, gift_certificate_id, order_date, last_update_date) VALUES (2, 300.21, 'paid', 2, 1, '2021-10-09 10:48:23', '2021-02-01 08:48:23');
+INSERT INTO orders.gift_certificate (id, price, status, user_id, gift_certificate_id, order_date, last_update_date) VALUES (3, 400.21, 'unpaid', 2, 2, '2020-10-09 10:48:23', '2021-04-01 08:48:23');
+INSERT INTO orders.gift_certificate (id, price, status, user_id, gift_certificate_id, order_date, last_update_date) VALUES (4, 300.21, 'unpaid', 1, 2, '2020-10-09 10:48:23', '2021-04-01 08:48:23');
+INSERT INTO orders.gift_certificate (id, price, status, user_id, gift_certificate_id, order_date, last_update_date) VALUES (5, 300.21, 'canceled', 3, 3, '2020-10-09 10:48:23', '2021-04-01 08:48:23');
+INSERT INTO orders.gift_certificate (id, price, status, user_id, gift_certificate_id, order_date, last_update_date) VALUES (6, 1500.00, 'done', 4, 5, '2020-10-09 10:48:23', '2021-04-01 08:48:23');
+
 ALTER SEQUENCE gifts.gift_certificate_id_seq RESTART WITH 7;
 ALTER SEQUENCE gifts.tag_id_seq RESTART WITH 11;
 ALTER SEQUENCE gifts.gift_certificate_tag_id_seq RESTART WITH 15;
+ALTER SEQUENCE users.list_id_seq RESTART WITH 5;
+ALTER SEQUENCE orders.gift_certificate_id_seq RESTART WITH 7;
