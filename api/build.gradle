@@ -1,4 +1,3 @@
-apply plugin: 'com.bmuschko.docker-remote-api'
 apply plugin: 'application'
 
 application {

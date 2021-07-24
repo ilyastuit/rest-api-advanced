@@ -1,6 +1,7 @@
 package com.epam.esm.repository.tag;
 
 import com.epam.esm.entity.tag.Tag;
+import com.epam.esm.entity.tag.TagDTO;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -70,5 +71,21 @@ public class TagRepository {
             this.jdbcTemplate.update(SQL, id);
             return null;
         });
+    }
+
+    public List<Tag> findAllOrderedWithHighestPrice() {
+        final String SQL = "SELECT distinct t.* FROM gifts.tag t left join gifts.gift_certificate_tag gct on gct.tag_id = t.id left join orders.gift_certificate ogc on ogc.gift_certificate_id = gct.gift_certificate_id WHERE ogc.price = (select MAX(ogct.price) from gifts.tag t left join gifts.gift_certificate_tag gct on gct.tag_id = t.id left join orders.gift_certificate ogct on ogct.gift_certificate_id = gct.id having MAX(ogct.price) is not null)";
+        return jdbcTemplate.query(SQL, new TagResultSetExtractor());
+    }
+
+    public List<Tag> findAllMostOrdered() {
+        final String SQL = "SELECT distinct t.* FROM gifts.tag t\n" +
+                "         inner join gifts.gift_certificate_tag gct on gct.tag_id = t.id\n" +
+                "         inner join orders.gift_certificate ogc on ogc.gift_certificate_id = gct.gift_certificate_id WHERE t.id in (select t.id from gifts.tag t\n" +
+                "                        inner join gifts.gift_certificate_tag gct on gct.tag_id = t.id\n" +
+                "                        inner join orders.gift_certificate ogct on ogct.gift_certificate_id = gct.gift_certificate_id GROUP BY t.id HAVING COUNT(t.id) = (select MAX(all_max.frequency) from (select COUNT(t.id) as frequency from gifts.tag t\n" +
+                "                                                    inner join gifts.gift_certificate_tag gct on gct.tag_id = t.id\n" +
+                "                                                    inner join orders.gift_certificate ogct on ogct.gift_certificate_id = gct.gift_certificate_id GROUP BY t.id) as all_max))";
+        return jdbcTemplate.query(SQL, new TagResultSetExtractor());
     }
 }

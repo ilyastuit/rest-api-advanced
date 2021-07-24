@@ -3,7 +3,6 @@ plugins {
     id 'application'
     id 'jacoco'
     id 'org.springframework.boot' version '2.5.2'
-    id 'com.bmuschko.docker-remote-api' version '4.8.0'
     id 'org.flywaydb.flyway' version '7.10.0'
 }
 
@@ -62,8 +61,22 @@ subprojects {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     implementation 'org.postgresql:postgresql:42.2.22'
+}
+
+flyway {
+    driver = 'org.postgresql.Driver'
+    url = 'jdbc:postgresql://localhost:54321/rest'
+    user = 'rest'
+    password = 'rest'
+
+    schemas = ['gifts', 'users', 'orders']
+    locations = ['filesystem:config/src/main/resources/db/migrations/']
 }
 
 bootJar { enabled = false }

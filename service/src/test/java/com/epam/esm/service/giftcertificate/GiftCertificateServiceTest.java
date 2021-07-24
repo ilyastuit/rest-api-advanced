@@ -5,6 +5,7 @@ import com.epam.esm.entity.giftcertificate.GiftCertificateDTO;
 import com.epam.esm.entity.tag.Tag;
 import com.epam.esm.entity.tag.TagDTO;
 import com.epam.esm.repository.giftcertificate.GiftCertificateRepository;
+import com.epam.esm.service.exceptions.GiftCertificateDeleteRestriction;
 import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
 import com.epam.esm.service.tag.TagService;
@@ -12,11 +13,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import java.math.BigDecimal;
@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@RunWith(JUnitPlatform.class)
 public class GiftCertificateServiceTest {
 
     @Mock
@@ -337,13 +336,13 @@ public class GiftCertificateServiceTest {
         List<GiftCertificate> list = Collections.singletonList(giftCertificate);
 
         when(
-                repository.findAllWithTagsByTagName("tag name")
+                repository.findAllWithTagsByTagNames(new String[] {"tag name"})
         ).thenReturn(list);
 
-        List<GiftCertificateDTO> fetchedList = service.getAllByTagName("tag name");
+        List<GiftCertificateDTO> fetchedList = service.getAllByTagNames(new String[] {"tag name"});
 
         assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllWithTagsByTagName("tag name");
+        verify(repository, times(1)).findAllWithTagsByTagNames(new String[] {"tag name"});
     }
 
     @Test
@@ -447,13 +446,36 @@ public class GiftCertificateServiceTest {
     }
 
     @Test
-    void testDelete() {
+    void testDeleteWithThrow() {
+        int ID = 1;
+        doThrow(DataIntegrityViolationException.class).when(repository).deleteById(ID);
+
+        assertThrows(GiftCertificateDeleteRestriction.class, () -> {
+            service.delete(ID);
+        });
+
+        verify(repository, times(1)).deleteById(ID);
+    }
+
+    @Test
+    void testDelete() throws GiftCertificateDeleteRestriction {
         int ID = 1;
         doNothing().when(repository).deleteById(ID);
 
         service.delete(ID);
 
         verify(repository, times(1)).deleteById(ID);
+    }
+
+    @Test
+    void testChangeName() {
+        int ID = 1;
+        String name = "New Name";
+        doNothing().when(repository).changeName(ID, name);
+
+        service.changeName(ID, name);
+
+        verify(repository, times(1)).changeName(ID, name);
     }
 
 

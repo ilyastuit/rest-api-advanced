@@ -14,6 +14,7 @@ public class GiftCertificateBuilder implements Cloneable {
 
     public final static int EXIST_CERTIFICATE_ID = 1;
     public final static int NOT_EXIST_CERTIFICATE_ID = 7;
+    public final static int ID_WITHOUT_ORDER = 4;
     public final static String EXIST_CERTIFICATE_NAME = "Android Development";
     public final static String NOT_EXIST_CERTIFICATE_NAME = "New Certificate";
     public final static String EXIST_CERTIFICATE_DESCRIPTION = "Android Development";

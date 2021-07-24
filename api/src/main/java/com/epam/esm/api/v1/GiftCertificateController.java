@@ -1,6 +1,7 @@
 package com.epam.esm.api.v1;
 
 import com.epam.esm.entity.giftcertificate.GiftCertificateDTO;
+import com.epam.esm.service.exceptions.GiftCertificateDeleteRestriction;
 import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.GiftCertificateSearchParameterNotProvidedException;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
@@ -62,24 +63,38 @@ public class GiftCertificateController {
 
     /**
      * Search GiftCertificates matching by name or description.
-     * Search GiftCertificates matching by Tag name.
      * Sort by date, name or with both of them.
      *
      * @param q Search parameter
-     * @param tag Tag name
      * @param date Sort by date (asc|desc)
      * @param name Sort by name (asc|desc)
      * @return List of found GiftCertificates.
      */
     @GetMapping(value = "/search")
     public ResponseEntity<?> search(@RequestParam("q") Optional<String> q,
-                                    @RequestParam("tag") Optional<String> tag,
                                     @RequestParam("date") Optional<String> date,
                                     @RequestParam("name") Optional<String> name) throws GiftCertificateSearchParameterNotProvidedException {
         if (q.isPresent()) {
             return new ResponseEntity<>(this.giftCertificateService.getAllByNameOrDescription(q.get(), date, name), HttpStatus.OK);
-        } else if(tag.isPresent()) {
-            return new ResponseEntity<>(this.giftCertificateService.getAllByTagName(tag.get()), HttpStatus.OK);
+        }
+        throw new GiftCertificateSearchParameterNotProvidedException();
+    }
+
+    /**
+     * Search GiftCertificates matching by Tag name.
+     * Sort by date, name or with both of them.
+     *
+     * @param tag Tag name
+     * @param date Sort by date (asc|desc)
+     * @param name Sort by name (asc|desc)
+     * @return List of found GiftCertificates.
+     */
+    @GetMapping(value = "/search-by-tag")
+    public ResponseEntity<?> searchByTag(@RequestParam("tag") Optional<String[]> tag,
+                                    @RequestParam("date") Optional<String> date,
+                                    @RequestParam("name") Optional<String> name) throws GiftCertificateSearchParameterNotProvidedException {
+        if(tag.isPresent()) {
+            return new ResponseEntity<>(this.giftCertificateService.getAllByTagNames(tag.get()), HttpStatus.OK);
         }
         throw new GiftCertificateSearchParameterNotProvidedException();
     }
@@ -136,7 +151,7 @@ public class GiftCertificateController {
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void delete(@PathVariable("id") int id) {
+    public void delete(@PathVariable("id") int id) throws GiftCertificateDeleteRestriction {
         this.giftCertificateService.delete(id);
     }
 
@@ -150,5 +165,31 @@ public class GiftCertificateController {
     @ResponseStatus(HttpStatus.OK)
     public void assignTag(@PathVariable("giftId") int giftId, @PathVariable("tagId") int tagId) {
         this.giftCertificateService.assignTagToCertificate(giftId, tagId);
+    }
+
+    /**
+     * Change name of GifCertificate
+     *
+     * @param giftId Id of GiftCertificate to change
+     * @param certificateDTO DTO with new name of certificate to change
+     */
+    @PutMapping("/{giftId}/name")
+    public ResponseEntity<?> changeName(@PathVariable("giftId") int giftId, @RequestBody GiftCertificateDTO certificateDTO) {
+
+        final BindingResult bindingResult = ValidatorUtil.validate(certificateDTO, this.giftCertificateValidator);
+
+        if (bindingResult.hasFieldErrors("name")) {
+            GiftCertificateValidationErrors result = new GiftCertificateValidationErrors(
+                    HttpStatus.BAD_REQUEST,
+                    GiftCertificateValidationErrors.DEFAULT_ERROR_MESSAGE,
+                    ValidatorUtil.getFieldErrors(bindingResult, "name")
+            );
+
+            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        }
+
+        this.giftCertificateService.changeName(giftId, certificateDTO.getName());
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

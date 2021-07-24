@@ -3,11 +3,13 @@ package com.epam.esm.service.giftcertificate;
 import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.entity.giftcertificate.GiftCertificateDTO;
 import com.epam.esm.entity.tag.Tag;
+import com.epam.esm.service.exceptions.GiftCertificateDeleteRestriction;
 import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
 import com.epam.esm.repository.giftcertificate.GiftCertificateRepository;
 import com.epam.esm.service.ValidatorUtil;
 import com.epam.esm.service.tag.TagService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Service;
 
@@ -138,8 +140,8 @@ public class GiftCertificateService {
         return dtoMapper.giftCertificateListToGiftCertificateDTOList(this.certificateRepository.findAll());
     }
 
-    public List<GiftCertificateDTO> getAllByTagName(String tagName) {
-        return dtoMapper.giftCertificateListToGiftCertificateDTOList(this.certificateRepository.findAllWithTagsByTagName(tagName));
+    public List<GiftCertificateDTO> getAllByTagNames(String[] tagNames) {
+        return dtoMapper.giftCertificateListToGiftCertificateDTOList(this.certificateRepository.findAllWithTagsByTagNames(tagNames));
     }
 
     public List<GiftCertificateDTO> getAllByNameOrDescription(String text, Optional<String> date, Optional<String> name) {
@@ -175,8 +177,16 @@ public class GiftCertificateService {
         }
     }
 
-    public void delete(int id) {
-        this.certificateRepository.deleteById(id);
+    public void changeName(int certificateId, String newName) {
+        this.certificateRepository.changeName(certificateId, newName);
+    }
+
+    public void delete(int id) throws GiftCertificateDeleteRestriction {
+        try {
+            this.certificateRepository.deleteById(id);
+        } catch (DataIntegrityViolationException exception) {
+            throw new GiftCertificateDeleteRestriction(id);
+        }
     }
 
     public List<GiftCertificateDTO> getAllByNameOrDescriptionWithTags(String text) {

@@ -2,6 +2,7 @@ package com.epam.esm;
 
 import com.epam.esm.repository.giftcertificate.GiftCertificateRepository;
 import com.epam.esm.repository.tag.TagRepository;
+import com.epam.esm.repository.user.UserRepository;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.configuration.Configuration;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
@@ -35,6 +36,12 @@ public class TestEnvironment {
         dataSource.setPassword(properties.getProperty("datasource.password"));
 
         return dataSource;
+    }
+
+    public static UserRepository getUserRepository() throws IOException {
+        return new UserRepository(
+                getJdbcTemplate()
+        );
     }
 
     public static GiftCertificateRepository getGiftCertificateRepository() throws IOException {

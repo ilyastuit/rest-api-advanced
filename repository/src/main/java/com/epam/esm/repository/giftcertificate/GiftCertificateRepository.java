@@ -2,6 +2,7 @@ package com.epam.esm.repository.giftcertificate;
 
 import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.repository.tag.TagRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -61,9 +62,19 @@ public class GiftCertificateRepository {
         return jdbcTemplate.query(SQL, new GiftCertificateResultSetExtractor(tagRepository).withTags());
     }
 
-    public List<GiftCertificate> findAllWithTagsByTagName(String tagName) {
-        String SQL = "SELECT gc.id, gc.name, gc.description, gc.price, gc.duration, gc.create_date, gc.last_update_date FROM gifts.gift_certificate gc LEFT JOIN gifts.gift_certificate_tag gct ON gct.gift_certificate_id = gc.id LEFT JOIN gifts.tag t ON gct.tag_id = t.id WHERE t.name = ?";
-        return jdbcTemplate.query(SQL, new GiftCertificateResultSetExtractor(tagRepository).withTags(), tagName);
+    public List<GiftCertificate> findAllWithTagsByTagNames(String[] tagNames) {
+        StringBuilder SQL = new StringBuilder("SELECT gc.id, gc.name, gc.description, gc.price, gc.duration, gc.create_date, gc.last_update_date FROM gifts.gift_certificate gc LEFT JOIN gifts.gift_certificate_tag gct ON gct.gift_certificate_id = gc.id LEFT JOIN gifts.tag t ON gct.tag_id = t.id WHERE t.name in (");
+
+        int i;
+        for (i = 0; i < tagNames.length - 1; i++) {
+            SQL.append("?, ");
+        }
+        if (tagNames.length > 1) {
+            SQL.append("?");
+        }
+        SQL.append(")");
+
+        return jdbcTemplate.query(SQL.toString(), new GiftCertificateResultSetExtractor(tagRepository).withTags(), (Object[]) tagNames);
     }
 
     public List<GiftCertificate> findAllByNameOrDescription(String text) {
@@ -78,7 +89,7 @@ public class GiftCertificateRepository {
         return jdbcTemplate.query(SQL, new GiftCertificateResultSetExtractor(tagRepository).withTags(), likeText, likeText);
     }
 
-    public void deleteById(int id) {
+    public void deleteById(int id) throws DataIntegrityViolationException {
         String SQL = "DELETE FROM gifts.gift_certificate WHERE id=?";
         this.jdbcTemplate.update(SQL, id);
     }
@@ -143,5 +154,10 @@ public class GiftCertificateRepository {
 
     private String prepareText(String text) {
         return "%" + text + "%";
+    }
+
+    public void changeName(int certificateId, String newName) {
+        String SQL = "UPDATE gifts.gift_certificate SET name = ? WHERE id = ?";
+        this.jdbcTemplate.update(SQL, newName, certificateId);
     }
 }

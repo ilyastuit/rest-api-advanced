@@ -79,4 +79,14 @@ public class TagController {
     public void delete(@PathVariable("id") int id) {
         this.tagService.deleteById(id);
     }
+
+    @GetMapping("/ordered-highest-price")
+    public ResponseEntity<List<TagDTO>> orderedTagsWithHighestPrice() {
+        return new ResponseEntity<>(tagService.getOrderedTagsWithHighestPrice(), HttpStatus.OK);
+    }
+
+    @GetMapping("/most-ordered")
+    public ResponseEntity<List<TagDTO>> mostOrdered() {
+        return new ResponseEntity<>(tagService.getMostOrdered(), HttpStatus.OK);
+    }
 }

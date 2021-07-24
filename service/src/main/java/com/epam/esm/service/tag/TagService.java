@@ -75,6 +75,10 @@ public class TagService {
         this.repository.assignTagToGiftCertificate(certificateId, tagId);
     }
 
+    public List<TagDTO> getOrderedTagsWithHighestPrice() {
+        return dtoMapper.map(repository.findAllOrderedWithHighestPrice());
+    }
+
     public void updateTags(int certificateId, List<Tag> tags) throws TagNameAlreadyExistException {
         List<TagDTO> tagDTOList = dtoMapper.map(tags);
         try {
@@ -95,5 +99,9 @@ public class TagService {
 
     private Tag getFromList(List<Tag> tags) {
         return tags.stream().findAny().orElse(null);
+    }
+
+    public List<TagDTO> getMostOrdered() {
+        return dtoMapper.map(repository.findAllMostOrdered());
     }
 }
