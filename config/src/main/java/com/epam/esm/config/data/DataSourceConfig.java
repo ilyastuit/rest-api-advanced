@@ -1,4 +1,4 @@
-package com.epam.esm.config;
+package com.epam.esm.config.data;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
