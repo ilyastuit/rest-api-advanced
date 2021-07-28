@@ -1,3 +1,4 @@
 rootProject.name = 'rest-api-advanced'
 
-include ':api', ':service', ':config', ':entity', ':repository'
+include ':api', ':service', ':config', ':entity', ':repository', 'cli'
+
