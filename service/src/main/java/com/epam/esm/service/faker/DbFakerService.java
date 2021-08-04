@@ -25,7 +25,6 @@ public class DbFakerService {
         List<GiftCertificate> certificates = new ArrayList<>(GIFTS_COUNT);
 
         for (int i = 1; i <= GIFTS_COUNT; i++) {
-            int id = i;
             String name = faker.gameOfThrones().character();
             String description = faker.gameOfThrones().quote();
             BigDecimal price = BigDecimal.valueOf(faker.random().nextDouble() * 100.0).setScale(2,4);
@@ -34,7 +33,6 @@ public class DbFakerService {
             LocalDateTime lastUpdateDate = LocalDateTime.now();
 
             GiftCertificate giftCertificate = new GiftCertificate(
-                    id,
                     name,
                     description,
                     price,
@@ -54,10 +52,9 @@ public class DbFakerService {
         List<Tag> tags = new ArrayList<>(TAGS_COUNT);
 
         for (int i = 1; i <= TAGS_COUNT ; i++) {
-            int id = i;
             String name = faker.funnyName().name() + i;
 
-            Tag tag = new Tag(id, name);
+            Tag tag = new Tag(name);
 
             tags.add(tag);
         }
@@ -69,14 +66,12 @@ public class DbFakerService {
         List<User> users = new ArrayList<>(USERS_COUNT);
 
         for (int i = 1; i <= USERS_COUNT ; i++) {
-            int id = i;
             String email = faker.internet().emailAddress() + i;
             String password = faker.internet().password();
             LocalDateTime createDate = LocalDateTime.now();
             LocalDateTime lastUpdateDate = LocalDateTime.now();
 
             User user = new User(
-                    id,
                     email,
                     password,
                     createDate,

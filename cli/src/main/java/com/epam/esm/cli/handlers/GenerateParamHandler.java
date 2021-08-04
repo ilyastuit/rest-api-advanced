@@ -43,17 +43,16 @@ public class GenerateParamHandler implements Handler {
         List<User> users = fakerService.generateUsersFakeData();
 
         jdbcTemplate.batchUpdate(
-                "INSERT INTO gifts.gift_certificate (id, name, description, price, duration, create_date, last_update_date) VALUES (?,?,?,?,?,?,?)",
+                "INSERT INTO gifts.gift_certificate (name, description, price, duration, create_date, last_update_date) VALUES (?,?,?,?,?,?)",
                 new BatchPreparedStatementSetter() {
 
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setInt(1, certificates.get(i).getId());
-                        ps.setString(2, certificates.get(i).getName());
-                        ps.setString(3, certificates.get(i).getDescription());
-                        ps.setBigDecimal(4, certificates.get(i).getPrice());
-                        ps.setInt(5, certificates.get(i).getDuration());
-                        ps.setTimestamp(6, Timestamp.valueOf(certificates.get(i).getCreateDate()));
-                        ps.setTimestamp(7, Timestamp.valueOf(certificates.get(i).getLastUpdateDate()));
+                        ps.setString(1, certificates.get(i).getName());
+                        ps.setString(2, certificates.get(i).getDescription());
+                        ps.setBigDecimal(3, certificates.get(i).getPrice());
+                        ps.setInt(4, certificates.get(i).getDuration());
+                        ps.setTimestamp(5, Timestamp.valueOf(certificates.get(i).getCreateDate()));
+                        ps.setTimestamp(6, Timestamp.valueOf(certificates.get(i).getLastUpdateDate()));
                     }
 
                     public int getBatchSize() {
@@ -63,12 +62,11 @@ public class GenerateParamHandler implements Handler {
                 });
 
         jdbcTemplate.batchUpdate(
-                "INSERT INTO gifts.tag (id, name) VALUES (?,?)",
+                "INSERT INTO gifts.tag (name) VALUES (?)",
                 new BatchPreparedStatementSetter() {
 
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setInt(1, tags.get(i).getId());
-                        ps.setString(2, tags.get(i).getName());
+                        ps.setString(1, tags.get(i).getName());
                     }
 
                     public int getBatchSize() {
@@ -78,15 +76,14 @@ public class GenerateParamHandler implements Handler {
                 });
 
         jdbcTemplate.batchUpdate(
-                "INSERT INTO users.list (id, email, password, create_date, last_update_date) VALUES (?,?,?,?,?)",
+                "INSERT INTO users.list (email, password, create_date, last_update_date) VALUES (?,?,?,?)",
                 new BatchPreparedStatementSetter() {
 
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setInt(1, users.get(i).getId());
-                        ps.setString(2, users.get(i).getEmail());
-                        ps.setString(3, users.get(i).getPassword());
-                        ps.setTimestamp(4, Timestamp.valueOf(users.get(i).getCreateDate()));
-                        ps.setTimestamp(5, Timestamp.valueOf(users.get(i).getLastUpdateDate()));
+                        ps.setString(1, users.get(i).getEmail());
+                        ps.setString(2, users.get(i).getPassword());
+                        ps.setTimestamp(3, Timestamp.valueOf(users.get(i).getCreateDate()));
+                        ps.setTimestamp(4, Timestamp.valueOf(users.get(i).getLastUpdateDate()));
                     }
 
                     public int getBatchSize() {

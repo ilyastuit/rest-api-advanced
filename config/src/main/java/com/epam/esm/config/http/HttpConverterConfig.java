@@ -1,4 +1,4 @@
-package com.epam.esm.config;
+package com.epam.esm.config.http;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
