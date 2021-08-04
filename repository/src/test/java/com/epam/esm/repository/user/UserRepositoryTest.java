@@ -5,6 +5,9 @@ import com.epam.esm.builder.UserBuilder;
 import com.epam.esm.entity.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,7 +27,7 @@ public class UserRepositoryTest {
 
     @Test
     void successFindAll() {
-        assertEquals(ALL_USERS_COUNT, repository.findAll().size());
+        assertEquals(ALL_USERS_COUNT, repository.findAll(PageRequest.of(0, ALL_USERS_COUNT, Sort.by(Sort.Direction.ASC, "email"))).getTotalElements());
     }
 
     @Test

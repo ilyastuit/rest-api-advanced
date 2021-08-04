@@ -1,6 +1,7 @@
 package com.epam.esm;
 
 import com.epam.esm.repository.giftcertificate.GiftCertificateRepository;
+import com.epam.esm.repository.order.OrderRepository;
 import com.epam.esm.repository.tag.TagRepository;
 import com.epam.esm.repository.user.UserRepository;
 import org.flywaydb.core.Flyway;
@@ -57,6 +58,15 @@ public class TestEnvironment {
                 getNamedParameterJdbcTemplate(),
                 getJdbcTemplate(),
                 getTransactionTemplate()
+        );
+    }
+
+    public static OrderRepository getOrderRepository() throws IOException {
+        return new OrderRepository(
+                getNamedParameterJdbcTemplate(),
+                getJdbcTemplate(),
+                getUserRepository(),
+                getGiftCertificateRepository()
         );
     }
 

@@ -128,7 +128,7 @@ public class TagRepository {
         StringBuilder builder = new StringBuilder(preparedQuery);
 
         final String SQL = getPageableStatement(builder, pageable);
-        long count = countAllOrderedWithHighestPrice();
+        long count = countAllMostOrdered();
 
         return new PageImpl<>(
                 jdbcTemplate.query(SQL, this.tagResultSetExtractor),
@@ -137,13 +137,14 @@ public class TagRepository {
     }
 
     public int countAllMostOrdered() {
-        return jdbcTemplate.queryForObject("SELECT count(distinct t.*) FROM gifts.tag t\\n\" +\n" +
-                "                \"         inner join gifts.gift_certificate_tag gct on gct.tag_id = t.id\\n\" +\n" +
-                "                \"         inner join orders.gift_certificate ogc on ogc.gift_certificate_id = gct.gift_certificate_id WHERE t.id in (select t.id from gifts.tag t\\n\" +\n" +
-                "                \"                        inner join gifts.gift_certificate_tag gct on gct.tag_id = t.id\\n\" +\n" +
-                "                \"                        inner join orders.gift_certificate ogct on ogct.gift_certificate_id = gct.gift_certificate_id GROUP BY t.id HAVING COUNT(t.id) = (select MAX(all_max.frequency) from (select COUNT(t.id) as frequency from gifts.tag t\\n\" +\n" +
-                "                \"                                                    inner join gifts.gift_certificate_tag gct on gct.tag_id = t.id\\n\" +\n" +
-                "                \"                                                    inner join orders.gift_certificate ogct on ogct.gift_certificate_id = gct.gift_certificate_id GROUP BY t.id) as all_max)) ", Integer.class);
+        return jdbcTemplate.queryForObject(new StringBuilder()
+                .append("SELECT count(distinct t.*) FROM gifts.tag t ")
+                .append(" inner join gifts.gift_certificate_tag gct on gct.tag_id = t.id ")
+                .append(" inner join orders.gift_certificate ogc on ogc.gift_certificate_id = gct.gift_certificate_id WHERE t.id in (select t.id from gifts.tag t")
+                .append(" inner join gifts.gift_certificate_tag gct on gct.tag_id = t.id")
+                .append(" inner join orders.gift_certificate ogct on ogct.gift_certificate_id = gct.gift_certificate_id GROUP BY t.id HAVING COUNT(t.id) = (select MAX(all_max.frequency) from (select COUNT(t.id) as frequency from gifts.tag t ")
+                .append(" inner join gifts.gift_certificate_tag gct on gct.tag_id = t.id ")
+                .append(" inner join orders.gift_certificate ogct on ogct.gift_certificate_id = gct.gift_certificate_id GROUP BY t.id) as all_max)) ").toString(), Integer.class);
     }
 
     private String getPageableStatement(StringBuilder SQL, Pageable pageable) {

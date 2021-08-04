@@ -98,16 +98,9 @@ public class GiftCertificateRepository {
     }
 
     public Page<GiftCertificate> findAllWithTagsByTagNames(String[] tagNames, Pageable pageable) {
-        StringBuilder SQL = new StringBuilder("SELECT gc.id, gc.name, gc.description, gc.price, gc.duration, gc.create_date, gc.last_update_date FROM gifts.gift_certificate gc LEFT JOIN gifts.gift_certificate_tag gct ON gct.gift_certificate_id = gc.id LEFT JOIN gifts.tag t ON gct.tag_id = t.id WHERE t.name in (");
+        StringBuilder SQL = new StringBuilder("SELECT gc.* FROM gifts.gift_certificate gc LEFT JOIN gifts.gift_certificate_tag gct ON gct.gift_certificate_id = gc.id LEFT JOIN gifts.tag t ON gct.tag_id = t.id WHERE t.name in ( ");
 
-        int i;
-        for (i = 0; i < tagNames.length - 1; i++) {
-            SQL.append("?, ");
-        }
-        if (tagNames.length > 1) {
-            SQL.append("?");
-        }
-        SQL.append(") ");
+        appendIn(SQL, tagNames);
 
         String query = getPageableStatement(SQL, pageable);
 
@@ -118,18 +111,11 @@ public class GiftCertificateRepository {
     }
 
     public int countTagsByTagNames(String[] tagNames) {
-        StringBuilder SQL = new StringBuilder("SELECT count(gc.id) FROM gifts.gift_certificate gc LEFT JOIN gifts.gift_certificate_tag gct ON gct.gift_certificate_id = gc.id LEFT JOIN gifts.tag t ON gct.tag_id = t.id WHERE t.name in (");
+        StringBuilder SQL = new StringBuilder("SELECT count(gc.id) FROM gifts.gift_certificate gc LEFT JOIN gifts.gift_certificate_tag gct ON gct.gift_certificate_id = gc.id LEFT JOIN gifts.tag t ON gct.tag_id = t.id WHERE t.name in ( ");
 
-        int i;
-        for (i = 0; i < tagNames.length - 1; i++) {
-            SQL.append("?, ");
-        }
-        if (tagNames.length > 1) {
-            SQL.append("?");
-        }
-        SQL.append(") ");
+        appendIn(SQL, tagNames);
 
-        return jdbcTemplate.queryForObject(SQL.toString(), Integer.class, tagNames);
+        return jdbcTemplate.queryForObject(SQL.toString(), Integer.class, (Object[]) tagNames);
     }
 
     public Page<GiftCertificate> findAllByNameOrDescription(String text, Pageable pageable) {
@@ -190,5 +176,17 @@ public class GiftCertificateRepository {
                 .append("ROWS ONLY");
 
         return SQL.toString();
+    }
+
+    private void appendIn(StringBuilder builder, String[] values) {
+        if (values.length == 1) {
+            builder.append("? ");
+        } else {
+            for (int i = 0; i < values.length; i++) {
+                builder.append("?, ");
+            }
+            builder.deleteCharAt(builder.length() - 2);
+        }
+        builder.append(") ");
     }
 }

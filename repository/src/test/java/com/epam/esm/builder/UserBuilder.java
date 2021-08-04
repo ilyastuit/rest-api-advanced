@@ -10,7 +10,7 @@ import java.util.List;
 public class UserBuilder implements Cloneable{
 
     public final static int EXIST_USER_ID = 1;
-    public final static int NOT_EXIST_USER_ID = 5;
+    public final static int NOT_EXIST_USER_ID = 6;
     public final static String EXIST_USER_EMAIL = "admin@mail.ru";
     public final static String NOT_EXIST_USER_EMAIL = "not_exist_email.ru";
     public final static String EXIST_USER_PASSWORD = "123";
@@ -19,7 +19,7 @@ public class UserBuilder implements Cloneable{
     public final static LocalDateTime NOT_EXIST_CERTIFICATE_CREATE_DATE = Timestamp.valueOf("2012-10-09 10:48:23").toLocalDateTime();
     public final static LocalDateTime EXIST_CERTIFICATE_LAST_UPDATE_DATE = Timestamp.valueOf("2021-02-01 08:48:23").toLocalDateTime();
     public final static LocalDateTime NOT_EXIST_CERTIFICATE_LAST_UPDATE_DATE = Timestamp.valueOf("2011-02-01 08:48:23").toLocalDateTime();
-    public final static int ALL_USERS_COUNT = 4;
+    public final static int ALL_USERS_COUNT = 5;
 
     private int id;
     private String email;

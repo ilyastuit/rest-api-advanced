@@ -80,7 +80,6 @@ flyway {
     url = 'jdbc:postgresql://localhost:54321/rest'
     user = 'rest'
     password = 'rest'
-
     schemas = ['gifts', 'users', 'orders']
     locations = ['filesystem:config/src/main/resources/db/migrations/']
 }

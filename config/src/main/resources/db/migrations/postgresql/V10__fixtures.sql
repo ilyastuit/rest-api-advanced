@@ -46,6 +46,7 @@ INSERT INTO users.list (id, email, password, create_date, last_update_date) VALU
 INSERT INTO users.list (id, email, password, create_date, last_update_date) VALUES (2, 'user@mail.ru', '123', '2020-10-09 10:48:23', '2021-02-01 08:48:23');
 INSERT INTO users.list (id, email, password, create_date, last_update_date) VALUES (3, 'moderator@mail.ru', '123', '2021-02-09 16:48:23', '2021-04-01 08:48:23');
 INSERT INTO users.list (id, email, password, create_date, last_update_date) VALUES (4, 'newcome@mail.ru', '123', '2020-07-24 16:48:23', '2021-05-10 14:48:23');
+INSERT INTO users.list (id, email, password, create_date, last_update_date) VALUES (5, 'newcome@mail1.ru', '123', '2020-07-24 16:48:23', '2021-05-10 14:48:23');
 
 INSERT INTO orders.gift_certificate (id, price, status, user_id, gift_certificate_id, order_date, last_update_date) VALUES (1, 200.21, 'paid', 1, 1, '2020-10-09 10:48:23', '2021-02-01 08:48:23');
 INSERT INTO orders.gift_certificate (id, price, status, user_id, gift_certificate_id, order_date, last_update_date) VALUES (2, 300.21, 'paid', 2, 1, '2021-10-09 10:48:23', '2021-02-01 08:48:23');
@@ -57,5 +58,5 @@ INSERT INTO orders.gift_certificate (id, price, status, user_id, gift_certificat
 ALTER SEQUENCE gifts.gift_certificate_id_seq RESTART WITH 7;
 ALTER SEQUENCE gifts.tag_id_seq RESTART WITH 11;
 ALTER SEQUENCE gifts.gift_certificate_tag_id_seq RESTART WITH 15;
-ALTER SEQUENCE users.list_id_seq RESTART WITH 5;
+ALTER SEQUENCE users.list_id_seq RESTART WITH 6;
 ALTER SEQUENCE orders.gift_certificate_id_seq RESTART WITH 7;
