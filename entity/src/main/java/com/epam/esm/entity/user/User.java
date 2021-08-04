@@ -29,6 +29,14 @@ public class User {
         this.orders = orders;
     }
 
+    public User(String email, String password, LocalDateTime createDate, LocalDateTime lastUpdateDate, List<Order> orders) {
+        this.email = email;
+        this.password = password;
+        this.setCreateDate(createDate);
+        this.setLastUpdateDate(lastUpdateDate);
+        this.orders = orders;
+    }
+
     public int getId() {
         return id;
     }

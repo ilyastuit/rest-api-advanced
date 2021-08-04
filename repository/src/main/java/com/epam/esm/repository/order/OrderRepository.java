@@ -3,6 +3,10 @@ package com.epam.esm.repository.order;
 import com.epam.esm.entity.order.Order;
 import com.epam.esm.repository.giftcertificate.GiftCertificateRepository;
 import com.epam.esm.repository.user.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -31,8 +35,38 @@ public class OrderRepository {
         namedParameterJdbcTemplate.update(SQL, params);
     }
 
-    public List<Order> findOrdersOfUser(int userId) {
-        final String SQL = "SELECT * FROM orders.gift_certificate ogc LEFT JOIN users.list u ON u.id = ogc.user_id WHERE u.id = ?";
-        return jdbcTemplate.query(SQL, new OrderResultSetExtractor(userRepository, giftCertificateRepository), userId);
+    public Page<Order> findOrdersOfUser(int userId, Pageable pageable) {
+
+        StringBuilder builder = new StringBuilder("SELECT * FROM orders.gift_certificate ogc LEFT JOIN users.list u ON u.id = ogc.user_id WHERE u.id = ? ");
+
+        final String SQL = getPageableStatement(builder, pageable);
+        long count = countOrdersOfUser(userId);
+
+        return new PageImpl<>(
+                jdbcTemplate.query(SQL, new OrderResultSetExtractor(userRepository, giftCertificateRepository), userId),
+                pageable,
+                (int) count);
+    }
+
+    public int countOrdersOfUser(int userId) {
+        return jdbcTemplate.queryForObject("SELECT count(ogc.id) FROM orders.gift_certificate ogc LEFT JOIN users.list u ON u.id = ogc.user_id WHERE u.id = ?", Integer.class, userId);
+    }
+
+    private String getPageableStatement(StringBuilder SQL, Pageable pageable) {
+        for (Sort.Order o : pageable.getSort()) {
+            SQL.append(" ORDER BY ogc.")
+                    .append(o.getProperty())
+                    .append(" ")
+                    .append(o.getDirection()).append(" ");
+        }
+        int offset = Math.max(pageable.getPageNumber() - 1, 0);
+        SQL.append(" OFFSET ")
+                .append(offset * pageable.getPageSize())
+                .append("ROWS ")
+                .append("FETCH NEXT ")
+                .append(pageable.getPageSize())
+                .append("ROWS ONLY");
+
+        return SQL.toString();
     }
 }

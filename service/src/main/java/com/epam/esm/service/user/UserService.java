@@ -4,6 +4,8 @@ import com.epam.esm.entity.user.User;
 import com.epam.esm.entity.user.UserDTO;
 import com.epam.esm.repository.user.UserRepository;
 import com.epam.esm.service.exceptions.UserNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,18 +21,18 @@ public class UserService {
         this.dtoMapper = dtoMapper;
     }
 
-    public List<UserDTO> getAll() {
-        return dtoMapper.userListToUserDTOList(userRepository.findAll());
+    public Page<User> getAll(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
-    public UserDTO getOne(int userId) throws UserNotFoundException {
+    public User getOne(int userId) throws UserNotFoundException {
         User user = getFromList(userRepository.findById(userId));
 
         if (user == null) {
             throw new UserNotFoundException(userId);
         }
 
-        return dtoMapper.userToUserDTO(user);
+        return user;
     }
 
     private User getFromList(List<User> userList) {

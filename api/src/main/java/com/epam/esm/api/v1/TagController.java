@@ -1,12 +1,19 @@
 package com.epam.esm.api.v1;
 
+import com.epam.esm.api.assembler.TagModelAssembler;
+import com.epam.esm.entity.tag.Tag;
 import com.epam.esm.entity.tag.TagDTO;
+import com.epam.esm.entity.tag.TagModel;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
 import com.epam.esm.service.exceptions.TagNotFoundException;
 import com.epam.esm.service.tag.validation.TagValidationErrors;
 import com.epam.esm.service.tag.validation.TagValidator;
 import com.epam.esm.service.tag.TagService;
 import com.epam.esm.service.ValidatorUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -22,10 +29,20 @@ import java.util.List;
 public class TagController {
 
     private final TagService tagService;
+    private final TagModelAssembler tagModelAssembler;
+    private final PagedResourcesAssembler<Tag> pagedResourcesAssembler;
     private final TagValidator tagValidator;
 
-    public TagController(TagService tagService, TagValidator tagValidator) {
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+    public TagController(
+            TagService tagService,
+            TagModelAssembler tagModelAssembler,
+            PagedResourcesAssembler<Tag> pagedResourcesAssembler,
+            TagValidator tagValidator
+    ) {
         this.tagService = tagService;
+        this.tagModelAssembler = tagModelAssembler;
+        this.pagedResourcesAssembler = pagedResourcesAssembler;
         this.tagValidator = tagValidator;
     }
 
@@ -35,8 +52,13 @@ public class TagController {
      * @return List of all Tags.
      */
     @GetMapping("/")
-    public ResponseEntity<List<TagDTO>> all() {
-        return new ResponseEntity<>(this.tagService.getAll(), HttpStatus.OK);
+    public ResponseEntity<PagedModel<TagModel>> all(Pageable pageable) {
+
+        Page<Tag> tags = this.tagService.getAll(pageable);
+
+        PagedModel<TagModel> tagModels = pagedResourcesAssembler.toModel(tags, tagModelAssembler);
+
+        return new ResponseEntity<>(tagModels, HttpStatus.OK);
     }
 
     /**
@@ -46,8 +68,11 @@ public class TagController {
      * @return Found Tag by id.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> one(@PathVariable("id") int id) throws TagNotFoundException {
-        return new ResponseEntity<>(this.tagService.getById(id), HttpStatus.OK);
+    public ResponseEntity<TagModel> one(@PathVariable("id") int id) throws TagNotFoundException {
+
+        TagModel tagModel = tagModelAssembler.toModel(this.tagService.getById(id));
+
+        return new ResponseEntity<>(tagModel, HttpStatus.OK);
     }
 
     /**
@@ -81,12 +106,22 @@ public class TagController {
     }
 
     @GetMapping("/ordered-highest-price")
-    public ResponseEntity<List<TagDTO>> orderedTagsWithHighestPrice() {
-        return new ResponseEntity<>(tagService.getOrderedTagsWithHighestPrice(), HttpStatus.OK);
+    public ResponseEntity<PagedModel<TagModel>> orderedTagsWithHighestPrice(Pageable pageable) {
+
+        Page<Tag> tags = tagService.getOrderedTagsWithHighestPrice(pageable);
+
+        PagedModel<TagModel> tagModels = pagedResourcesAssembler.toModel(tags, tagModelAssembler);
+
+        return new ResponseEntity<>(tagModels, HttpStatus.OK);
     }
 
     @GetMapping("/most-ordered")
-    public ResponseEntity<List<TagDTO>> mostOrdered() {
-        return new ResponseEntity<>(tagService.getMostOrdered(), HttpStatus.OK);
+    public ResponseEntity<PagedModel<TagModel>> mostOrdered(Pageable pageable) {
+
+        Page<Tag> tags = tagService.getMostOrdered(pageable);
+
+        PagedModel<TagModel> tagModels = pagedResourcesAssembler.toModel(tags, tagModelAssembler);
+
+        return new ResponseEntity<>(tagModels, HttpStatus.OK);
     }
 }
