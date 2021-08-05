@@ -44,4 +44,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         HttpError userNotFound = new HttpErrorImpl(e.getMessage(), HttpStatus.NOT_FOUND, ErrorCode.USER);
         return new ResponseEntity<>(userNotFound, userNotFound.getStatus());
     }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<HttpError> handleOrderNotFoundException(OrderNotFoundException e, WebRequest request) {
+        HttpError userNotFound = new HttpErrorImpl(e.getMessage(), HttpStatus.NOT_FOUND, ErrorCode.ORDER);
+        return new ResponseEntity<>(userNotFound, userNotFound.getStatus());
+    }
 }

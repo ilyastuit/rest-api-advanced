@@ -7,7 +7,6 @@ import com.epam.esm.cli.infrastructure.param.parser.Parser;
 import com.epam.esm.cli.infrastructure.param.exception.InvalidCommandException;
 import com.epam.esm.cli.infrastructure.param.exception.HandlerNotFoundException;
 import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -34,13 +33,13 @@ public class ParamResolver implements Resolver {
     }
 
     private Handler resolveHandler(CommandData data) throws HandlerNotFoundException {
-        Set<Class<Handler>> handlers = getHandlers();
+        Set<Class<? extends Handler>> handlers = getHandlers();
 
-        for (Class<?> handler : handlers) {
+        for (Class<? extends Handler> handler : handlers) {
             if (handler.getAnnotation(ParamMapper.class).name().equals(data.getName())) {
                 try {
-                    Class<Handler> c = (Class<Handler>) Class.forName(handler.getName());
-                    return c.getConstructor(CommandData.class, JdbcTemplate.class).newInstance(data, jdbcTemplate);
+                    Class<?> c = Class.forName(handler.getName());
+                    return (Handler) c.getConstructor(CommandData.class, JdbcTemplate.class).newInstance(data, jdbcTemplate);
                 } catch (IllegalArgumentException | ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ignored) {
                 }
             }
@@ -49,12 +48,12 @@ public class ParamResolver implements Resolver {
         throw new HandlerNotFoundException(data);
     }
 
-    public Set<Class<Handler>> getHandlers() {
+    public Set<Class<? extends Handler>> getHandlers() {
         Reflections reflections = new Reflections("com.epam.esm.cli.*");
 
         return reflections.getSubTypesOf(Handler.class)
                 .stream()
-                .map(clazz -> (Class<Handler>) clazz)
+                .map(clazz ->  clazz)
                 .filter(clazz -> clazz.isAnnotationPresent(ParamMapper.class))
                 .collect(Collectors.toSet());
     }

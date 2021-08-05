@@ -81,29 +81,11 @@ public class TagService {
         return repository.findAllOrderedWithHighestPrice(pageable);
     }
 
-    public void updateTags(int certificateId, List<Tag> tags) throws TagNameAlreadyExistException {
-        List<TagDTO> tagDTOList = dtoMapper.map(tags);
-        try {
-            for (TagDTO tagDTO: tagDTOList) {
-                int tagId;
-                if (!this.isExistByName(tagDTO.getName())) {
-                    tagId = this.save(tagDTO);
-                } else {
-                    tagId = this.getByName(tagDTO.getName()).getId();
-                }
-                if (!this.isTagAlreadyAssignedToGiftCertificate(certificateId, tagId)) {
-                    this.assignTagToGiftCertificate(certificateId, tagId);
-                }
-            }
-        } catch (TagNotFoundException ignored) {
-        }
+    public Page<Tag> getMostOrdered(Pageable pageable) {
+        return repository.findAllMostOrdered(pageable);
     }
 
     private Tag getFromList(List<Tag> tags) {
         return tags.stream().findAny().orElse(null);
-    }
-
-    public Page<Tag> getMostOrdered(Pageable pageable) {
-        return repository.findAllMostOrdered(pageable);
     }
 }

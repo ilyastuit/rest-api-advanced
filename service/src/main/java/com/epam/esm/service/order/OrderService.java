@@ -3,12 +3,12 @@ package com.epam.esm.service.order;
 import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.entity.order.Order;
 import com.epam.esm.entity.order.OrderStatus;
+import com.epam.esm.entity.user.User;
 import com.epam.esm.entity.user.UserDTO;
 import com.epam.esm.repository.order.OrderRepository;
 import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.UserNotFoundException;
 import com.epam.esm.service.giftcertificate.GiftCertificateService;
-import com.epam.esm.service.user.UserDTOMapper;
 import com.epam.esm.service.user.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,19 +25,15 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserService userService;
     private final GiftCertificateService giftCertificateService;
-    private final OrderDTOMapper dtoMapper;
-    private final UserDTOMapper userDTOMapper;
 
-    public OrderService(OrderRepository orderRepository, UserService userService, GiftCertificateService giftCertificateService, OrderDTOMapper dtoMapper, UserDTOMapper userDTOMapper) {
+    public OrderService(OrderRepository orderRepository, UserService userService, GiftCertificateService giftCertificateService) {
         this.orderRepository = orderRepository;
         this.userService = userService;
         this.giftCertificateService = giftCertificateService;
-        this.dtoMapper = dtoMapper;
-        this.userDTOMapper = userDTOMapper;
     }
 
     public void orderCertificateForUser(int userId, int giftCertificateId) throws UserNotFoundException, GiftCertificateNotFoundException {
-        UserDTO user = userDTOMapper.userToUserDTO(userService.getOne(userId));
+        User user = userService.getOne(userId);
         GiftCertificate giftCertificate = giftCertificateService.getOne(giftCertificateId, false);
 
         MapSqlParameterSource params = prepareUpdate(user, giftCertificate);
@@ -46,7 +42,11 @@ public class OrderService {
         orderRepository.orderCertificateForUser(params);
     }
 
-    private MapSqlParameterSource prepareUpdate(UserDTO user, GiftCertificate giftCertificateDTO) {
+    public Page<Order> getOrdersOfUser(int userId, Pageable pageable) {
+        return orderRepository.findOrdersOfUser(userId, pageable);
+    }
+
+    private MapSqlParameterSource prepareUpdate(User user, GiftCertificate giftCertificateDTO) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("price", giftCertificateDTO.getPrice());
         params.addValue("status", OrderStatus.UNPAID.getValue());
@@ -55,13 +55,5 @@ public class OrderService {
         params.addValue("last_update_date", Timestamp.valueOf(LocalDateTime.now()));
 
         return params;
-    }
-
-    public Page<Order> getOrdersOfUser(int userId, Pageable pageable) {
-        return orderRepository.findOrdersOfUser(userId, pageable);
-    }
-
-    private Order getFromList(List<Order> orderList) {
-        return orderList.stream().findAny().orElse(null);
     }
 }

@@ -11,6 +11,4 @@ public interface TagDTOMapper {
 
     TagDTO tagToDTO(Tag tag);
     Tag dtoToTag(TagDTO tagDTO);
-
-    List<TagDTO> map(List<Tag> tagList);
 }

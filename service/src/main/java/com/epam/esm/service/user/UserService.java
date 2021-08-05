@@ -14,11 +14,9 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserDTOMapper dtoMapper;
 
-    public UserService(UserRepository userRepository, UserDTOMapper dtoMapper) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.dtoMapper = dtoMapper;
     }
 
     public Page<User> getAll(Pageable pageable) {

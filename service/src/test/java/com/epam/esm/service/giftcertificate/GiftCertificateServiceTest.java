@@ -8,6 +8,7 @@ import com.epam.esm.repository.giftcertificate.GiftCertificateRepository;
 import com.epam.esm.service.exceptions.GiftCertificateDeleteRestriction;
 import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
+import com.epam.esm.service.tag.TagDTOMapper;
 import com.epam.esm.service.tag.TagService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.*;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import java.math.BigDecimal;
@@ -33,13 +35,15 @@ public class GiftCertificateServiceTest {
     private GiftCertificateRepository repository;
     @Mock
     private TagService tagService;
+    @Mock
+    private TagDTOMapper tagDTOMapper;
 
     private GiftCertificateService service;
 
     @BeforeEach
     public void createMocks() {
         MockitoAnnotations.openMocks(this);
-        service = new GiftCertificateService(repository, tagService, new GiftCertificateDTOMapperImpl());
+        service = new GiftCertificateService(repository, tagService, new GiftCertificateDTOMapperImpl(), tagDTOMapper);
     }
 
     @Test
@@ -54,18 +58,6 @@ public class GiftCertificateServiceTest {
 
         assertEquals(ID, service.save(getCertificateDTO()));
         verify(repository, times(1)).save(any(MapSqlParameterSource.class));
-        verify(tagService, times(1)).updateTags(anyInt(), anyList());
-    }
-
-    @Test
-    void testSaveThrowTagAlreadyExist() throws TagNameAlreadyExistException {
-        doThrow(TagNameAlreadyExistException.class).when(tagService).updateTags(anyInt(), anyList());
-
-        Assertions.assertThrows(TagNameAlreadyExistException.class, () -> {
-            service.save(getCertificateDTO());
-        });
-
-        verify(tagService, times(1)).updateTags(anyInt(), anyList());
     }
 
     @Test
@@ -80,21 +72,7 @@ public class GiftCertificateServiceTest {
         ).thenReturn(ID);
 
         assertEquals(ID, service.update(ID, getCertificateDTO()));
-        verify(tagService, times(1)).updateTags(anyInt(), anyList());
         verify(repository, times(1)).update(anyInt(), any(MapSqlParameterSource.class));
-    }
-
-    @Test
-    void testUpdateThrowTagAlreadyExist() throws TagNameAlreadyExistException {
-        int ID = 1;
-
-        doThrow(TagNameAlreadyExistException.class).when(tagService).updateTags(anyInt(), anyList());
-
-        Assertions.assertThrows(TagNameAlreadyExistException.class, () -> {
-            service.update(ID, getCertificateDTO());
-        });
-
-        verify(tagService, times(1)).updateTags(anyInt(), anyList());
     }
 
     @Test
@@ -120,18 +98,42 @@ public class GiftCertificateServiceTest {
                 repository.findByIdWithTags(ID)
         ).thenReturn(list);
 
-        GiftCertificateDTO dto = service.getOne(ID, true);
+        GiftCertificate entity = service.getOne(ID, true);
 
-        assertEquals(giftCertificate.getId(), dto.getId());
-        assertEquals(giftCertificate.getName(), dto.getName());
-        assertEquals(giftCertificate.getDescription(), dto.getDescription());
-        assertEquals(giftCertificate.getPrice(), dto.getPrice());
-        assertEquals(giftCertificate.getDuration(), dto.getDuration());
-        assertEquals(giftCertificate.getCreateDate(), dto.getCreateDate());
-        assertEquals(giftCertificate.getLastUpdateDate(), dto.getLastUpdateDate());
-        assertEquals(giftCertificate.getTags().size(), dto.getTags().size());
+        assertEquals(giftCertificate.getId(), entity.getId());
+        assertEquals(giftCertificate.getName(), entity.getName());
+        assertEquals(giftCertificate.getDescription(), entity.getDescription());
+        assertEquals(giftCertificate.getPrice(), entity.getPrice());
+        assertEquals(giftCertificate.getDuration(), entity.getDuration());
+        assertEquals(giftCertificate.getCreateDate(), entity.getCreateDate());
+        assertEquals(giftCertificate.getLastUpdateDate(), entity.getLastUpdateDate());
+        assertEquals(giftCertificate.getTags().size(), entity.getTags().size());
 
         verify(repository, times(1)).findByIdWithTags(ID);
+    }
+
+    @Test
+    void testGetOneSuccess() throws GiftCertificateNotFoundException {
+        int ID = 1;
+        GiftCertificate giftCertificate = getCertificate();
+        giftCertificate.setTags(getTags());
+        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
+
+        when(
+                repository.findById(ID)
+        ).thenReturn(list);
+
+        GiftCertificate entity = service.getOne(ID, false);
+
+        assertEquals(giftCertificate.getId(), entity.getId());
+        assertEquals(giftCertificate.getName(), entity.getName());
+        assertEquals(giftCertificate.getDescription(), entity.getDescription());
+        assertEquals(giftCertificate.getPrice(), entity.getPrice());
+        assertEquals(giftCertificate.getDuration(), entity.getDuration());
+        assertEquals(giftCertificate.getCreateDate(), entity.getCreateDate());
+        assertEquals(giftCertificate.getLastUpdateDate(), entity.getLastUpdateDate());
+
+        verify(repository, times(1)).findById(ID);
     }
 
     @Test
@@ -144,15 +146,15 @@ public class GiftCertificateServiceTest {
                 repository.findById(ID)
         ).thenReturn(list);
 
-        GiftCertificateDTO dto = service.getOne(ID, false);
+        GiftCertificate entity = service.getOne(ID, false);
 
-        assertEquals(giftCertificate.getId(), dto.getId());
-        assertEquals(giftCertificate.getName(), dto.getName());
-        assertEquals(giftCertificate.getDescription(), dto.getDescription());
-        assertEquals(giftCertificate.getPrice(), dto.getPrice());
-        assertEquals(giftCertificate.getDuration(), dto.getDuration());
-        assertEquals(giftCertificate.getCreateDate(), dto.getCreateDate());
-        assertEquals(giftCertificate.getLastUpdateDate(), dto.getLastUpdateDate());
+        assertEquals(giftCertificate.getId(), entity.getId());
+        assertEquals(giftCertificate.getName(), entity.getName());
+        assertEquals(giftCertificate.getDescription(), entity.getDescription());
+        assertEquals(giftCertificate.getPrice(), entity.getPrice());
+        assertEquals(giftCertificate.getDuration(), entity.getDuration());
+        assertEquals(giftCertificate.getCreateDate(), entity.getCreateDate());
+        assertEquals(giftCertificate.getLastUpdateDate(), entity.getLastUpdateDate());
 
         verify(repository, times(1)).findById(ID);
     }
@@ -173,256 +175,85 @@ public class GiftCertificateServiceTest {
     }
 
     @Test
-    void testGetOneWithTagsSuccess() throws GiftCertificateNotFoundException {
-        int ID = 1;
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findByIdWithTags(ID)
-        ).thenReturn(list);
-
-        GiftCertificateDTO dto = service.getOneWithTags(ID);
-
-        assertEquals(giftCertificate.getId(), dto.getId());
-        assertEquals(giftCertificate.getName(), dto.getName());
-        assertEquals(giftCertificate.getDescription(), dto.getDescription());
-        assertEquals(giftCertificate.getPrice(), dto.getPrice());
-        assertEquals(giftCertificate.getDuration(), dto.getDuration());
-        assertEquals(giftCertificate.getCreateDate(), dto.getCreateDate());
-        assertEquals(giftCertificate.getLastUpdateDate(), dto.getLastUpdateDate());
-
-        verify(repository, times(1)).findByIdWithTags(ID);
-    }
-
-    @Test
-    void testGetOneWithTagsThrowNotFound() {
-        int ID = 1;
-
-        when(
-                repository.findByIdWithTags(ID)
-        ).thenReturn(new ArrayList<>());
-
-        Assertions.assertThrows(GiftCertificateNotFoundException.class, () -> {
-            service.getOneWithTags(ID);
-        });
-
-        verify(repository, times(1)).findByIdWithTags(ID);
-    }
-
-    @Test
     void testGetAllWithTagsWithoutSort() {
         GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
+        Page<GiftCertificate> page = new PageImpl<>(Collections.singletonList(giftCertificate));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findAllWithTags()
-        ).thenReturn(list);
+                repository.findAllWithTags(pageable)
+        ).thenReturn(page);
 
-        List<GiftCertificateDTO> fetchedList = service.getAll(Optional.of("true"), Optional.of("wrong sorting"), Optional.of("wrong sorting"));
+        Page<GiftCertificate> fetchedPage = service.getAll(Optional.of("true"), pageable);
 
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllWithTags();
+        assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
+        verify(repository, times(1)).findAllWithTags(pageable);
     }
 
     @Test
     void testGetAllWithoutTagsWithoutSort() {
         GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
+        Page<GiftCertificate> page = new PageImpl<>(Collections.singletonList(giftCertificate));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findAll()
-        ).thenReturn(list);
+                repository.findAll(pageable)
+        ).thenReturn(page);
 
-        List<GiftCertificateDTO> fetchedList = service.getAll(Optional.of("false"), Optional.of("wrong sorting"), Optional.of("wrong sorting"));
+        Page<GiftCertificate> fetchedPage = service.getAll(Optional.of("false"), pageable);
 
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAll();
-    }
-
-    @Test
-    void testGetAllWithTagsWithSortDate() {
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findAllWithTagsOrderByDate("ASC")
-        ).thenReturn(list);
-
-        List<GiftCertificateDTO> fetchedList = service.getAll(Optional.of("true"), Optional.of("ASC"), Optional.of("wrong sorting"));
-
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllWithTagsOrderByDate("ASC");
-    }
-
-    @Test
-    void testGetAllWithoutTagsWithSortDate() {
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findAllOrderByDate("ASC")
-        ).thenReturn(list);
-
-        List<GiftCertificateDTO> fetchedList = service.getAll(Optional.of("false"), Optional.of("ASC"), Optional.of("wrong sorting"));
-
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllOrderByDate("ASC");
-    }
-
-    @Test
-    void testGetAllWithTagsWithSortName() {
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findAllWithTagsOrderByName("ASC")
-        ).thenReturn(list);
-
-        List<GiftCertificateDTO> fetchedList = service.getAll(Optional.of("true"), Optional.of("wrong sorting"), Optional.of("ASC"));
-
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllWithTagsOrderByName("ASC");
-    }
-
-    @Test
-    void testGetAllWithoutTagsWithSortName() {
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findAllOrderByName("ASC")
-        ).thenReturn(list);
-
-        List<GiftCertificateDTO> fetchedList = service.getAll(Optional.of("false"), Optional.of("wrong sorting"), Optional.of("ASC"));
-
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllOrderByName("ASC");
-    }
-
-    @Test
-    void testGetAllWithTagsWithSortDateAndName() {
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findAllWithTagsOrderByDateAndByName("ASC", "ASC")
-        ).thenReturn(list);
-
-        List<GiftCertificateDTO> fetchedList = service.getAll(Optional.of("true"), Optional.of("ASC"), Optional.of("ASC"));
-
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllWithTagsOrderByDateAndByName("ASC", "ASC");
-    }
-
-    @Test
-    void testGetAllWithoutTagsWithSortDateAndName() {
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findAllOrderByDateAndByName("ASC", "ASC")
-        ).thenReturn(list);
-
-        List<GiftCertificateDTO> fetchedList = service.getAll(Optional.of("false"), Optional.of("ASC"), Optional.of("ASC"));
-
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllOrderByDateAndByName("ASC", "ASC");
+        assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
+        verify(repository, times(1)).findAll(pageable);
     }
 
     @Test
     void testGetAllByTagName() {
         GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
+        Page<GiftCertificate> page = new PageImpl<>(Collections.singletonList(giftCertificate));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findAllWithTagsByTagNames(new String[] {"tag name"})
-        ).thenReturn(list);
+                repository.findAllWithTagsByTagNames(new String[] {"tag name"}, pageable)
+        ).thenReturn(page);
 
-        List<GiftCertificateDTO> fetchedList = service.getAllByTagNames(new String[] {"tag name"});
+        Page<GiftCertificate> fetchedPage = service.getAllByTagNames(new String[] {"tag name"}, pageable);
 
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllWithTagsByTagNames(new String[] {"tag name"});
+        assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
+        verify(repository, times(1)).findAllWithTagsByTagNames(new String[] {"tag name"}, pageable);
     }
 
     @Test
     void testGetAllByNameOrDescriptionWithoutSort() {
         String name = "name";
         GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
+        Page<GiftCertificate> page = new PageImpl<>(Collections.singletonList(giftCertificate));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findAllByNameOrDescription(name)
-        ).thenReturn(list);
+                repository.findAllByNameOrDescription(name, pageable)
+        ).thenReturn(page);
 
-        List<GiftCertificateDTO> fetchedList = service.getAllByNameOrDescription(name, Optional.of("wrong sort"), Optional.of("wrong sort"));
+        Page<GiftCertificate> fetchedPage = service.getAllByNameOrDescription(name, pageable);
 
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllByNameOrDescription(name);
-    }
-
-    @Test
-    void testGetAllByNameOrDescriptionWithDateSort() {
-        String name = "name";
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findAllByNameOrDescriptionOrderByDate(name, "ASC")
-        ).thenReturn(list);
-
-        List<GiftCertificateDTO> fetchedList = service.getAllByNameOrDescription(name, Optional.of("ASC"), Optional.of("wrong sort"));
-
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllByNameOrDescriptionOrderByDate(name, "ASC");
-    }
-
-    @Test
-    void testGetAllByNameOrDescriptionWithNameSort() {
-        String name = "name";
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findAllByNameOrDescriptionOrderByName(name, "ASC")
-        ).thenReturn(list);
-
-        List<GiftCertificateDTO> fetchedList = service.getAllByNameOrDescription(name, Optional.of("wrong sort"), Optional.of("ASC"));
-
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllByNameOrDescriptionOrderByName(name, "ASC");
-    }
-
-    @Test
-    void testGetAllByNameOrDescriptionWithDateAndNameSort() {
-        String name = "name";
-        GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
-
-        when(
-                repository.findAllByNameOrDescriptionOrderByDateAndName(name, "ASC", "ASC")
-        ).thenReturn(list);
-
-        List<GiftCertificateDTO> fetchedList = service.getAllByNameOrDescription(name, Optional.of("ASC"), Optional.of("ASC"));
-
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllByNameOrDescriptionOrderByDateAndName(name, "ASC", "ASC");
+        assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
+        verify(repository, times(1)).findAllByNameOrDescription(name, pageable);
     }
 
     @Test
     void testGetAllByNameOrDescriptionWithTags() {
         String name = "name";
         GiftCertificate giftCertificate = getCertificate();
-        List<GiftCertificate> list = Collections.singletonList(giftCertificate);
+        Page<GiftCertificate> page = new PageImpl<>(Collections.singletonList(giftCertificate));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findAllWithTagsByNameOrDescription(name)
-        ).thenReturn(list);
+                repository.findAllWithTagsByNameOrDescription(name, pageable)
+        ).thenReturn(page);
 
-        List<GiftCertificateDTO> fetchedList = service.getAllByNameOrDescriptionWithTags(name);
+        Page<GiftCertificate> fetchedPage = service.getAllByNameOrDescriptionWithTags(name, pageable);
 
-        assertEquals(list.size(), fetchedList.size());
-        verify(repository, times(1)).findAllWithTagsByNameOrDescription(name);
+        assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
+        verify(repository, times(1)).findAllWithTagsByNameOrDescription(name, pageable);
     }
 
     @Test
@@ -501,6 +332,7 @@ public class GiftCertificateServiceTest {
         dto.setDuration(100);
         dto.setCreateDate(Timestamp.valueOf("2021-06-24 11:48:23").toLocalDateTime());
         dto.setLastUpdateDate(Timestamp.valueOf("2021-06-24 11:48:23").toLocalDateTime());
+        dto.setTags(getTagDTO());
 
         return dto;
     }

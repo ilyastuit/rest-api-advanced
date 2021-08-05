@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,19 +29,21 @@ public class UserServiceTest {
     @BeforeEach
     public void createMocks() {
         MockitoAnnotations.openMocks(this);
-        service = new UserService(repository, new UserDTOMapperImpl());
+        service = new UserService(repository);
     }
 
     @Test
     public void successGetAll() {
         List<User> users = new ArrayList<>();
         users.add(new User(1, "admin@mail.ru", "123", LocalDateTime.now(), LocalDateTime.now(), null));
+        Page<User> page = new PageImpl<>(users);
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "price"));
 
-        when(repository.findAll()).thenReturn(users);
+        when(repository.findAll(pageable)).thenReturn(page);
 
-        service.getAll();
+        service.getAll(pageable);
 
-        verify(repository, times(1)).findAll();
+        verify(repository, times(1)).findAll(pageable);
     }
 
     @Test

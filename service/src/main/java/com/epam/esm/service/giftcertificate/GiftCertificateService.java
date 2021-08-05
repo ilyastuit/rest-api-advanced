@@ -3,10 +3,13 @@ package com.epam.esm.service.giftcertificate;
 import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.entity.giftcertificate.GiftCertificateDTO;
 import com.epam.esm.entity.tag.Tag;
+import com.epam.esm.entity.tag.TagDTO;
 import com.epam.esm.service.exceptions.GiftCertificateDeleteRestriction;
 import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
 import com.epam.esm.repository.giftcertificate.GiftCertificateRepository;
+import com.epam.esm.service.exceptions.TagNotFoundException;
+import com.epam.esm.service.tag.TagDTOMapper;
 import com.epam.esm.service.tag.TagService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -25,11 +28,18 @@ public class GiftCertificateService {
     private final GiftCertificateRepository certificateRepository;
     private final TagService tagService;
     private final GiftCertificateDTOMapper dtoMapper;
+    private final TagDTOMapper tagDTOMapper;
 
-    public GiftCertificateService(GiftCertificateRepository certificateRepository, TagService tagService, GiftCertificateDTOMapper dtoMapper) {
+    public GiftCertificateService(
+            GiftCertificateRepository certificateRepository,
+            TagService tagService,
+            GiftCertificateDTOMapper dtoMapper,
+            TagDTOMapper tagDTOMapper
+    ) {
         this.certificateRepository = certificateRepository;
         this.tagService = tagService;
         this.dtoMapper = dtoMapper;
+        this.tagDTOMapper = tagDTOMapper;
     }
 
     public int save(GiftCertificateDTO giftCertificateDTO) throws TagNameAlreadyExistException {
@@ -74,16 +84,6 @@ public class GiftCertificateService {
         return getFromList(this.certificateRepository.findById(id)) != null;
     }
 
-    public GiftCertificateDTO getOne(int id) throws GiftCertificateNotFoundException {
-        GiftCertificate giftCertificate = getFromList(this.certificateRepository.findById(id));
-
-        if (giftCertificate == null) {
-            throw new GiftCertificateNotFoundException(id);
-        }
-
-        return dtoMapper.giftCertificateToGiftCertificateDTO(giftCertificate);
-    }
-
     public GiftCertificate getOne(int id, boolean withTags) throws GiftCertificateNotFoundException {
         GiftCertificate giftCertificate = null;
         if (withTags) {
@@ -107,10 +107,6 @@ public class GiftCertificateService {
         }
     }
 
-    public Page<GiftCertificate> getAllWithTags(Pageable pageable) {
-        return this.certificateRepository.findAllWithTags(pageable);
-    }
-
     public Page<GiftCertificate> getAllByTagNames(String[] tagNames, Pageable pageable) {
         return this.certificateRepository.findAllWithTagsByTagNames(tagNames, pageable);
     }
@@ -123,12 +119,25 @@ public class GiftCertificateService {
         return this.certificateRepository.findAllWithTagsByNameOrDescription(text, pageable);
     }
 
-    private void updateTags(int certificateId, List<Tag> tags) throws TagNameAlreadyExistException {
-        this.tagService.updateTags(certificateId, tags);
-    }
-
     private GiftCertificate getFromList(List<GiftCertificate> certificateList) {
         return certificateList.stream().findAny().orElse(null);
+    }
+
+    private void updateTags(int certificateId, List<Tag> tags) throws TagNameAlreadyExistException {
+        try {
+            for (Tag tag: tags) {
+                int tagId;
+                if (!tagService.isExistByName(tag.getName())) {
+                    tagId = tagService.save(tagDTOMapper.tagToDTO(tag));
+                } else {
+                    tagId = tagService.getByName(tag.getName()).getId();
+                }
+                if (!tagService.isTagAlreadyAssignedToGiftCertificate(certificateId, tagId)) {
+                    tagService.assignTagToGiftCertificate(certificateId, tagId);
+                }
+            }
+        } catch (TagNotFoundException ignored) {
+        }
     }
 
     private MapSqlParameterSource prepareParams(GiftCertificate giftCertificate) {

@@ -1,5 +1,6 @@
 package com.epam.esm.service.tag;
 
+import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.entity.tag.Tag;
 import com.epam.esm.entity.tag.TagDTO;
 import com.epam.esm.repository.tag.TagRepository;
@@ -9,13 +10,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.data.domain.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,8 +23,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,10 +76,10 @@ public class TagServiceTest {
                 )
         ).thenReturn(list);
 
-        TagDTO dto = service.getById(ID);
+        Tag entity = service.getById(ID);
 
-        assertEquals(getTagDTO().getId(), dto.getId());
-        assertEquals(getTagDTO().getName(), dto.getName());
+        assertEquals(getTagDTO().getId(), entity.getId());
+        assertEquals(getTagDTO().getName(), entity.getName());
         verify(repository, times(1)).findById(ID);
     }
 
@@ -107,16 +104,49 @@ public class TagServiceTest {
     @Test
     void testGetAll() {
         Tag tag = getTag();
-        List<Tag> list = Collections.singletonList(tag);
+        Page<Tag> page = new PageImpl<>(Collections.singletonList(tag));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findAll()
-        ).thenReturn(list);
+                repository.findAll(pageable)
+        ).thenReturn(page);
 
-        List<TagDTO> dtoList = service.getAll();
+        Page<Tag> fetchedPage = service.getAll(pageable);
 
-        assertEquals(list.size(), dtoList.size());
-        verify(repository, times(1)).findAll();
+        assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
+        verify(repository, times(1)).findAll(pageable);
+    }
+
+    @Test
+    void testGetOrderedTagsWithHighestPrice() {
+        Tag tag = getTag();
+        Page<Tag> page = new PageImpl<>(Collections.singletonList(tag));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
+
+        when(
+                repository.findAllOrderedWithHighestPrice(pageable)
+        ).thenReturn(page);
+
+        Page<Tag> fetchedPage = service.getOrderedTagsWithHighestPrice(pageable);
+
+        assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
+        verify(repository, times(1)).findAllOrderedWithHighestPrice(pageable);
+    }
+
+    @Test
+    void testGetMostOrdered() {
+        Tag tag = getTag();
+        Page<Tag> page = new PageImpl<>(Collections.singletonList(tag));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
+
+        when(
+                repository.findAllMostOrdered(pageable)
+        ).thenReturn(page);
+
+        Page<Tag> fetchedPage = service.getMostOrdered(pageable);
+
+        assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
+        verify(repository, times(1)).findAllMostOrdered(pageable);
     }
 
     @Test
@@ -132,16 +162,17 @@ public class TagServiceTest {
     @Test
     void testGetAllByCertificateId() {
         Tag tag = getTag();
-        List<Tag> list = Collections.singletonList(tag);
+        Page<Tag> page = new PageImpl<>(Collections.singletonList(tag));
+        Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findByGiftCertificateId(1)
-        ).thenReturn(list);
+                repository.findByGiftCertificateId(1, pageable)
+        ).thenReturn(page);
 
-        List<TagDTO> dtoList = service.getAllByGiftCertificateId(1);
+        Page<Tag> fetchedPage = service.getAllByGiftCertificateId(1, pageable);
 
-        assertEquals(list.size(), dtoList.size());
-        verify(repository, times(1)).findByGiftCertificateId(1);
+        assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
+        verify(repository, times(1)).findByGiftCertificateId(1, pageable);
     }
 
     @Test

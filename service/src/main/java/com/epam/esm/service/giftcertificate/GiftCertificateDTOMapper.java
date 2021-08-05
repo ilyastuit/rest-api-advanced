@@ -12,11 +12,4 @@ import java.util.List;
 public interface GiftCertificateDTOMapper {
 
     GiftCertificate giftCertificateDTOToGiftCertificate(GiftCertificateDTO giftCertificateDTO);
-    GiftCertificateDTO giftCertificateToGiftCertificateDTO(GiftCertificate giftCertificate);
-
-    List<GiftCertificateDTO> giftCertificateListToGiftCertificateDTOList(List<GiftCertificate> giftCertificateList);
-    List<GiftCertificate> giftCertificateDTOListToGiftCertificateList(List<GiftCertificateDTO> dtoList);
-
-    TagDTO tagToTagDTO(Tag tag);
-    Tag tagDTOToTag(TagDTO dto);
 }
