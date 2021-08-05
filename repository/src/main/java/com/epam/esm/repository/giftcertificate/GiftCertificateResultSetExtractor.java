@@ -3,6 +3,7 @@ package com.epam.esm.repository.giftcertificate;
 import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.repository.tag.TagRepository;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.sql.ResultSet;
@@ -31,7 +32,13 @@ public class GiftCertificateResultSetExtractor implements ResultSetExtractor<Lis
             extractRow(giftCertificate, resultSet);
 
             if (this.withTags) {
-                giftCertificate.setTags(this.tagRepository.findByGiftCertificateId(giftCertificate.getId()));
+                int pageSize = tagRepository.countAllByCertificate(giftCertificate.getId()) <= 0 ? 1 : tagRepository.countAllByCertificate(giftCertificate.getId());
+                giftCertificate.setTags(
+                        tagRepository.findByGiftCertificateId(
+                                giftCertificate.getId(),
+                                Pageable.ofSize(
+                                        pageSize
+                                )).getContent());
             }
 
             giftList.add(giftCertificate);

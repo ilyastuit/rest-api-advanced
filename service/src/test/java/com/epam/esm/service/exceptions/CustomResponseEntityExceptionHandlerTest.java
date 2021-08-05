@@ -108,4 +108,64 @@ public class CustomResponseEntityExceptionHandlerTest {
         assertFalse(httpError.equals(handled.getBody()));
         assertNotEquals(httpError.getStatus(), handled.getStatusCode());
     }
+
+    @Test
+    void successUserNotFoundExceptionHandlerById() {
+        UserNotFoundException exception = new UserNotFoundException(1);
+        HttpError httpError = new HttpErrorImpl(exception.getMessage(), HttpStatus.NOT_FOUND, ErrorCode.USER);
+
+        final ResponseEntity<HttpError> handled = handler.handleUserNotFoundException(exception, null);
+
+        assertTrue(handled.hasBody());
+        assertTrue(httpError.equals(handled.getBody()));
+        assertEquals(httpError.getStatus(), handled.getStatusCode());
+    }
+
+    @Test
+    void successUserNotFoundExceptionHandlerByEmail() {
+        UserNotFoundException exception = new UserNotFoundException("mail@mail.ru");
+        HttpError httpError = new HttpErrorImpl(exception.getMessage(), HttpStatus.NOT_FOUND, ErrorCode.USER);
+
+        final ResponseEntity<HttpError> handled = handler.handleUserNotFoundException(exception, null);
+
+        assertTrue(handled.hasBody());
+        assertTrue(httpError.equals(handled.getBody()));
+        assertEquals(httpError.getStatus(), handled.getStatusCode());
+    }
+
+    @Test
+    void failUserNotFoundExceptionHandlerWithDifferentStatus() {
+        UserNotFoundException exception = new UserNotFoundException(1);
+        HttpError httpError = new HttpErrorImpl(exception.getMessage(), HttpStatus.OK, ErrorCode.USER);
+
+        final ResponseEntity<HttpError> handled = handler.handleUserNotFoundException(exception, null);
+
+        assertTrue(handled.hasBody());
+        assertFalse(httpError.equals(handled.getBody()));
+        assertNotEquals(httpError.getStatus(), handled.getStatusCode());
+    }
+
+    @Test
+    void successOrderNotFoundExceptionHandler() {
+        OrderNotFoundException exception = new OrderNotFoundException();
+        HttpError httpError = new HttpErrorImpl(exception.getMessage(), HttpStatus.NOT_FOUND, ErrorCode.ORDER);
+
+        final ResponseEntity<HttpError> handled = handler.handleOrderNotFoundException(exception, null);
+
+        assertTrue(handled.hasBody());
+        assertTrue(httpError.equals(handled.getBody()));
+        assertEquals(httpError.getStatus(), handled.getStatusCode());
+    }
+
+    @Test
+    void failOrderNotFoundExceptionHandlerWithDifferentStatus() {
+        OrderNotFoundException exception = new OrderNotFoundException();
+        HttpError httpError = new HttpErrorImpl(exception.getMessage(), HttpStatus.OK, ErrorCode.ORDER);
+
+        final ResponseEntity<HttpError> handled = handler.handleOrderNotFoundException(exception, null);
+
+        assertTrue(handled.hasBody());
+        assertFalse(httpError.equals(handled.getBody()));
+        assertNotEquals(httpError.getStatus(), handled.getStatusCode());
+    }
 }

@@ -38,4 +38,16 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         HttpError giftCertificateSearchProviderNotProvided = new HttpErrorImpl(e.getMessage(), HttpStatus.BAD_REQUEST, ErrorCode.GIFT_CERTIFICATE);
         return new ResponseEntity<>(giftCertificateSearchProviderNotProvided, giftCertificateSearchProviderNotProvided.getStatus());
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<HttpError> handleUserNotFoundException(UserNotFoundException e, WebRequest request) {
+        HttpError userNotFound = new HttpErrorImpl(e.getMessage(), HttpStatus.NOT_FOUND, ErrorCode.USER);
+        return new ResponseEntity<>(userNotFound, userNotFound.getStatus());
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<HttpError> handleOrderNotFoundException(OrderNotFoundException e, WebRequest request) {
+        HttpError userNotFound = new HttpErrorImpl(e.getMessage(), HttpStatus.NOT_FOUND, ErrorCode.ORDER);
+        return new ResponseEntity<>(userNotFound, userNotFound.getStatus());
+    }
 }

@@ -1,0 +1,25 @@
+apply plugin: 'application'
+
+application {
+    mainClassName = 'com.epam.esm.cli.RestApiAdvancedConsoleApplication'
+}
+
+bootJar {
+    archiveFileName = "rest-cli.${archiveExtension.get()}"
+}
+
+jar {
+    enabled = false
+}
+
+dependencies {
+    implementation project(':config')
+    implementation project(':service')
+    implementation project(':entity')
+
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+    implementation 'org.reflections:reflections:0.9.12'
+    implementation 'com.github.javafaker:javafaker:1.0.2'
+}

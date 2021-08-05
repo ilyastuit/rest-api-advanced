@@ -52,6 +52,16 @@ public class ValidatorUtil {
         return errors;
     }
 
+    public static Map<String, String> getFieldErrors(BindingResult bindingResult, String fieldName) {
+        Map<String, String> errors = new HashMap<>();
+
+        for (FieldError fieldError : bindingResult.getFieldErrors(fieldName)) {
+            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+
+        return errors;
+    }
+
     public static void serializeValidationError(HttpError validationErrors, JsonGenerator jgen) throws IOException {
         jgen.writeStartObject();
         jgen.writeNumberField("status", validationErrors.getStatus().value());

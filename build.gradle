@@ -3,7 +3,6 @@ plugins {
     id 'application'
     id 'jacoco'
     id 'org.springframework.boot' version '2.5.2'
-    id 'com.bmuschko.docker-remote-api' version '4.8.0'
     id 'org.flywaydb.flyway' version '7.10.0'
 }
 
@@ -24,10 +23,16 @@ subprojects {
     }
 
     dependencies {
+
+        implementation 'org.springframework.hateoas:spring-hateoas'
+        implementation 'org.springframework.data:spring-data-commons'
+
         implementation 'org.postgresql:postgresql:42.2.22'
 
         implementation 'org.mapstruct:mapstruct:1.4.2.Final'
         annotationProcessor 'org.mapstruct:mapstruct-processor:1.4.2.Final'
+        compileOnly 'org.projectlombok:lombok:1.18.20'
+        annotationProcessor "org.projectlombok:lombok:1.18.20"
 
         implementation 'com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.12.3'
         implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names:2.12.3'
@@ -62,8 +67,21 @@ subprojects {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     implementation 'org.postgresql:postgresql:42.2.22'
+}
+
+flyway {
+    driver = 'org.postgresql.Driver'
+    url = 'jdbc:postgresql://localhost:54321/rest'
+    user = 'rest'
+    password = 'rest'
+    schemas = ['gifts', 'users', 'orders']
+    locations = ['filesystem:config/src/main/resources/db/migrations/']
 }
 
 bootJar { enabled = false }

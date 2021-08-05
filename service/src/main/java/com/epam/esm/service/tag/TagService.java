@@ -6,6 +6,8 @@ import com.epam.esm.repository.tag.TagRepository;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
 import com.epam.esm.service.exceptions.TagNotFoundException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,25 +34,25 @@ public class TagService {
         return id;
     }
 
-    public TagDTO getById(int id) throws TagNotFoundException {
+    public Tag getById(int id) throws TagNotFoundException {
         Tag tag = getFromList(this.repository.findById(id));
 
         if (tag == null) {
             throw new TagNotFoundException(id);
         }
-        return dtoMapper.tagToDTO(tag);
+        return tag;
     }
 
-    public List<TagDTO> getAll() {
-        return dtoMapper.map(this.repository.findAll());
+    public Page<Tag> getAll(Pageable pageable) {
+        return this.repository.findAll(pageable);
     }
 
     public void deleteById(int id) {
         this.repository.deleteById(id);
     }
 
-    public List<TagDTO> getAllByGiftCertificateId(Integer certificateId) {
-        return dtoMapper.map(this.repository.findByGiftCertificateId(certificateId));
+    public Page<Tag> getAllByGiftCertificateId(Integer certificateId, Pageable pageable) {
+        return this.repository.findByGiftCertificateId(certificateId, pageable);
     }
 
     public boolean isExistByName(String name) {
@@ -75,22 +77,12 @@ public class TagService {
         this.repository.assignTagToGiftCertificate(certificateId, tagId);
     }
 
-    public void updateTags(int certificateId, List<Tag> tags) throws TagNameAlreadyExistException {
-        List<TagDTO> tagDTOList = dtoMapper.map(tags);
-        try {
-            for (TagDTO tagDTO: tagDTOList) {
-                int tagId;
-                if (!this.isExistByName(tagDTO.getName())) {
-                    tagId = this.save(tagDTO);
-                } else {
-                    tagId = this.getByName(tagDTO.getName()).getId();
-                }
-                if (!this.isTagAlreadyAssignedToGiftCertificate(certificateId, tagId)) {
-                    this.assignTagToGiftCertificate(certificateId, tagId);
-                }
-            }
-        } catch (TagNotFoundException ignored) {
-        }
+    public Page<Tag> getOrderedTagsWithHighestPrice(Pageable pageable) {
+        return repository.findAllOrderedWithHighestPrice(pageable);
+    }
+
+    public Page<Tag> getMostOrdered(Pageable pageable) {
+        return repository.findAllMostOrdered(pageable);
     }
 
     private Tag getFromList(List<Tag> tags) {
