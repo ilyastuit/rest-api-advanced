@@ -1,8 +1,8 @@
 package com.epam.esm.cli.infrastructure.param.exception;
 
-public class InvalidCommandException extends Exception{
+public class InvalidParamException extends Exception{
 
-    public InvalidCommandException(String command) {
+    public InvalidParamException(String command) {
         super("Command does not meet the requirements: " + command);
     }
 }
