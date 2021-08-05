@@ -54,7 +54,7 @@ public class GenerateParamHandler implements Handler {
         batchInsertUsers(users);
     }
 
-    public List<GiftCertificate> generateGiftsFakeData() {
+    private List<GiftCertificate> generateGiftsFakeData() {
         List<GiftCertificate> certificates = new ArrayList<>(GIFTS_COUNT);
 
         for (int i = 1; i <= GIFTS_COUNT; i++) {
@@ -81,7 +81,7 @@ public class GenerateParamHandler implements Handler {
         return certificates;
     }
 
-    public List<Tag> generateTagsFakeData() {
+    private List<Tag> generateTagsFakeData() {
         List<Tag> tags = new ArrayList<>(TAGS_COUNT);
 
         for (int i = 1; i <= TAGS_COUNT ; i++) {
@@ -95,7 +95,7 @@ public class GenerateParamHandler implements Handler {
         return tags;
     }
 
-    public List<User> generateUsersFakeData() {
+    private List<User> generateUsersFakeData() {
         List<User> users = new ArrayList<>(USERS_COUNT);
 
         for (int i = 1; i <= USERS_COUNT ; i++) {
@@ -118,7 +118,7 @@ public class GenerateParamHandler implements Handler {
         return users;
     }
 
-    public void batchInsertCertificates(List<GiftCertificate> certificates) {
+    private void batchInsertCertificates(List<GiftCertificate> certificates) {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO gifts.gift_certificate (name, description, price, duration, create_date, last_update_date) VALUES (?,?,?,?,?,?)",
                 new BatchPreparedStatementSetter() {
@@ -139,7 +139,7 @@ public class GenerateParamHandler implements Handler {
                 });
     }
 
-    public void batchInsertTags(List<Tag> tags) {
+    private void batchInsertTags(List<Tag> tags) {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO gifts.tag (name) VALUES (?)",
                 new BatchPreparedStatementSetter() {
@@ -155,7 +155,7 @@ public class GenerateParamHandler implements Handler {
                 });
     }
 
-    public void batchInsertUsers(List<User> users) {
+    private void batchInsertUsers(List<User> users) {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO users.list (email, password, create_date, last_update_date) VALUES (?,?,?,?)",
                 new BatchPreparedStatementSetter() {

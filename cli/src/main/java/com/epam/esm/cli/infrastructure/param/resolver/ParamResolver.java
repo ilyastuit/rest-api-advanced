@@ -4,7 +4,7 @@ import com.epam.esm.cli.infrastructure.param.CommandData;
 import com.epam.esm.cli.infrastructure.param.annotations.ParamMapper;
 import com.epam.esm.cli.infrastructure.param.handler.Handler;
 import com.epam.esm.cli.infrastructure.param.parser.Parser;
-import com.epam.esm.cli.infrastructure.param.exception.InvalidCommandException;
+import com.epam.esm.cli.infrastructure.param.exception.InvalidParamException;
 import com.epam.esm.cli.infrastructure.param.exception.HandlerNotFoundException;
 import org.reflections.Reflections;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,7 +26,7 @@ public class ParamResolver implements Resolver {
     }
 
     @Override
-    public Handler resolve(String param) throws HandlerNotFoundException, InvalidCommandException {
+    public Handler resolve(String param) throws HandlerNotFoundException, InvalidParamException {
         CommandData data = paramParser.parse(param);
 
         return resolveHandler(data);
@@ -53,7 +53,6 @@ public class ParamResolver implements Resolver {
 
         return reflections.getSubTypesOf(Handler.class)
                 .stream()
-                .map(clazz ->  clazz)
                 .filter(clazz -> clazz.isAnnotationPresent(ParamMapper.class))
                 .collect(Collectors.toSet());
     }

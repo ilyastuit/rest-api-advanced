@@ -18,6 +18,9 @@ docker-build:
 migrate:
 	./gradlew flywayClean flywayMigrate --stacktrace
 
+generate-data:
+	java -jar ./cli/build/libs/rest-cli.jar clear=true generate=true
+
 docker-up:
 	docker-compose up -d
 

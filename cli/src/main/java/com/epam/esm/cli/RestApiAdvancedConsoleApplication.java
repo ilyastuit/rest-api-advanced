@@ -1,9 +1,8 @@
 package com.epam.esm.cli;
 
-import com.epam.esm.cli.infrastructure.param.handler.Handler;
 import com.epam.esm.cli.infrastructure.param.resolver.Resolver;
 import com.epam.esm.cli.infrastructure.param.exception.HandlerNotFoundException;
-import com.epam.esm.cli.infrastructure.param.exception.InvalidCommandException;
+import com.epam.esm.cli.infrastructure.param.exception.InvalidParamException;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,7 +26,7 @@ public class RestApiAdvancedConsoleApplication implements CommandLineRunner {
         for (String path : args) {
             try {
                 resolver.resolve(path).handle();
-            } catch (HandlerNotFoundException | InvalidCommandException e) {
+            } catch (HandlerNotFoundException | InvalidParamException e) {
                 System.out.println(e.getMessage());
             }
         }
