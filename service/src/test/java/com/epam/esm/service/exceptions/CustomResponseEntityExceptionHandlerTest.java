@@ -1,5 +1,6 @@
 package com.epam.esm.service.exceptions;
 
+import com.epam.esm.entity.exceptions.IllegalOrderStatusValueException;
 import com.epam.esm.service.error.ErrorCode;
 import com.epam.esm.service.error.HttpError;
 import com.epam.esm.service.error.HttpErrorImpl;
@@ -163,6 +164,30 @@ public class CustomResponseEntityExceptionHandlerTest {
         HttpError httpError = new HttpErrorImpl(exception.getMessage(), HttpStatus.OK, ErrorCode.ORDER);
 
         final ResponseEntity<HttpError> handled = handler.handleOrderNotFoundException(exception, null);
+
+        assertTrue(handled.hasBody());
+        assertFalse(httpError.equals(handled.getBody()));
+        assertNotEquals(httpError.getStatus(), handled.getStatusCode());
+    }
+
+    @Test
+    void successIllegalOrderStatusValueExceptionHandler() {
+        IllegalOrderStatusValueException exception = new IllegalOrderStatusValueException("status");
+        HttpError httpError = new HttpErrorImpl(exception.getMessage(), HttpStatus.BAD_REQUEST, ErrorCode.ORDER);
+
+        final ResponseEntity<HttpError> handled = handler.handleIllegalOrderStatusValueException(exception, null);
+
+        assertTrue(handled.hasBody());
+        assertTrue(httpError.equals(handled.getBody()));
+        assertEquals(httpError.getStatus(), handled.getStatusCode());
+    }
+
+    @Test
+    void failIllegalOrderStatusValueExceptionHandlerWithDifferentStatus() {
+        IllegalOrderStatusValueException exception = new IllegalOrderStatusValueException("status");
+        HttpError httpError = new HttpErrorImpl(exception.getMessage(), HttpStatus.OK, ErrorCode.ORDER);
+
+        final ResponseEntity<HttpError> handled = handler.handleIllegalOrderStatusValueException(exception, null);
 
         assertTrue(handled.hasBody());
         assertFalse(httpError.equals(handled.getBody()));

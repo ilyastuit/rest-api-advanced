@@ -1,7 +1,6 @@
 package com.epam.esm.service.tag.validation;
 
 import com.epam.esm.service.error.ErrorCode;
-import com.epam.esm.service.giftcertificate.validation.GiftCertificateValidationErrors;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 

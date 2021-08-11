@@ -32,9 +32,4 @@ public class TagValidator implements Validator {
             errors.rejectValue("name", "name.unique", "Tag with this name is already exist.");
         }
     }
-
-    public TagValidator fromGiftCertificate() {
-        this.fromGiftCertificate = true;
-        return this;
-    }
 }

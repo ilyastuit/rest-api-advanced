@@ -1,7 +1,5 @@
 package com.epam.esm.service.tag.validation;
 
-import com.epam.esm.service.giftcertificate.validation.GiftCertificateValidationErrors;
-import com.epam.esm.service.giftcertificate.validation.GiftCertificateValidationErrorsSerializer;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;

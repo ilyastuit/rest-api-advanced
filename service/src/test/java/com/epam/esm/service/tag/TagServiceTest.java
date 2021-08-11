@@ -1,11 +1,12 @@
 package com.epam.esm.service.tag;
 
-import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.entity.tag.Tag;
 import com.epam.esm.entity.tag.TagDTO;
 import com.epam.esm.repository.tag.TagRepository;
+import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
 import com.epam.esm.service.exceptions.TagNotFoundException;
+import com.epam.esm.service.giftcertificate.GiftCertificateService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,23 +32,27 @@ public class TagServiceTest {
     @Mock
     private TagRepository repository;
 
+    @Mock
+    private GiftCertificateService giftCertificateService;
+
     private TagService service;
 
     @BeforeEach
     public void createMocks() {
         MockitoAnnotations.openMocks(this);
-        service = new TagService(repository, new TagDTOMapperImpl());
+        service = new TagService(repository, giftCertificateService, new TagDTOMapperImpl());
     }
 
     @Test
     void testSaveSuccess() throws TagNameAlreadyExistException {
         int ID = 1;
+        Tag tag = new Tag(ID);
 
         when(
                 repository.save(
                         any(Tag.class)
                 )
-        ).thenReturn(ID);
+        ).thenReturn(tag);
 
         assertEquals(ID, service.save(getTagDTO()));
         verify(repository, times(1)).save(any(Tag.class));
@@ -150,10 +155,12 @@ public class TagServiceTest {
     }
 
     @Test
-    void testDeleteById() {
+    void testDeleteById() throws TagNotFoundException {
         int ID = 1;
-
+        List<Tag> list = new ArrayList<>();
+        list.add(getTag());
         doNothing().when(repository).deleteById(ID);
+        when(repository.findById(1)).thenReturn(list);
 
         service.deleteById(ID);
         verify(repository, times(1)).deleteById(ID);
@@ -237,10 +244,13 @@ public class TagServiceTest {
     }
 
     @Test
-    void testAssignTagToGiftCertificate() {
+    void testAssignTagToGiftCertificate() throws GiftCertificateNotFoundException, TagNotFoundException {
+        List<Tag> list = new ArrayList<>();
+        list.add(getTag());
         doNothing().when(repository).assignTagToGiftCertificate(1, 1);
+        when(repository.findById(1)).thenReturn(list);
 
-        service.assignTagToGiftCertificate(1 , 1);
+        service.assignTagToGiftCertificate(1, 1);
 
         verify(repository, times(1)).assignTagToGiftCertificate(1, 1);
     }

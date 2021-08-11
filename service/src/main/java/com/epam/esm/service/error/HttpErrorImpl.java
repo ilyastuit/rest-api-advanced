@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @JsonSerialize(using = HttpErrorSerializer.class)
-public class HttpErrorImpl implements HttpError{
+public class HttpErrorImpl implements HttpError {
 
     private final HttpStatus status;
     private final String message;

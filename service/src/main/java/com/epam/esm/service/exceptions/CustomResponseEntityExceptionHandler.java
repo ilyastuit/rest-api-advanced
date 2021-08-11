@@ -1,5 +1,6 @@
 package com.epam.esm.service.exceptions;
 
+import com.epam.esm.entity.exceptions.IllegalOrderStatusValueException;
 import com.epam.esm.service.error.ErrorCode;
 import com.epam.esm.service.error.HttpError;
 import com.epam.esm.service.error.HttpErrorImpl;
@@ -47,7 +48,13 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
     @ExceptionHandler(OrderNotFoundException.class)
     public ResponseEntity<HttpError> handleOrderNotFoundException(OrderNotFoundException e, WebRequest request) {
-        HttpError userNotFound = new HttpErrorImpl(e.getMessage(), HttpStatus.NOT_FOUND, ErrorCode.ORDER);
-        return new ResponseEntity<>(userNotFound, userNotFound.getStatus());
+        HttpError orderNotFound = new HttpErrorImpl(e.getMessage(), HttpStatus.NOT_FOUND, ErrorCode.ORDER);
+        return new ResponseEntity<>(orderNotFound, orderNotFound.getStatus());
+    }
+
+    @ExceptionHandler(IllegalOrderStatusValueException.class)
+    public ResponseEntity<HttpError> handleIllegalOrderStatusValueException(IllegalOrderStatusValueException e, WebRequest request) {
+        HttpError orderError = new HttpErrorImpl(e.getMessage(), HttpStatus.BAD_REQUEST, ErrorCode.ORDER);
+        return new ResponseEntity<>(orderError, orderError.getStatus());
     }
 }

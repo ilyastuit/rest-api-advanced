@@ -42,10 +42,10 @@ public class GiftCertificateValidator implements Validator {
 
         if (giftCertificateDTO.getTags() != null && !giftCertificateDTO.getTags().isEmpty()) {
             int i = 0;
-            for(TagDTO tagDTO : giftCertificateDTO.getTags()) {
+            for (TagDTO tagDTO : giftCertificateDTO.getTags()) {
                 try {
-                    errors.pushNestedPath("tags["+ i++ +"]");
-                    ValidationUtils.invokeValidator(this.tagValidator.fromGiftCertificate(), tagDTO, errors);
+                    errors.pushNestedPath("tags[" + (i++) + "]");
+                    ValidationUtils.invokeValidator(this.tagValidator, tagDTO, errors);
                 } finally {
                     errors.popNestedPath();
                 }
