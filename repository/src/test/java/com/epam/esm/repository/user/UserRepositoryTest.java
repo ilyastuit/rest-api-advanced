@@ -1,29 +1,27 @@
 package com.epam.esm.repository.user;
 
-import com.epam.esm.TestEnvironment;
+import com.epam.esm.TestRepositoryConfig;
 import com.epam.esm.builder.UserBuilder;
 import com.epam.esm.entity.user.User;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
-import java.io.IOException;
-import java.util.List;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static com.epam.esm.builder.UserBuilder.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+@SpringBootTest(classes = TestRepositoryConfig.class)
+@TestPropertySource("classpath:application-test.properties")
 public class UserRepositoryTest {
 
     private final UserBuilder builder = new UserBuilder();
-    private static UserRepository repository;
 
-    @BeforeAll
-    private static void beforeAll() throws IOException {
-        repository = TestEnvironment.getUserRepository();
-    }
+    @Autowired
+    private UserRepository repository;
 
     @Test
     void successFindAll() {
@@ -42,7 +40,7 @@ public class UserRepositoryTest {
 
     @Test
     void successEmptyFindOne() {
-        assertEquals(0, repository.findById(NOT_EXIST_USER_ID).size());
+        assertNull(repository.findById(NOT_EXIST_USER_ID));
     }
 
     private void assertUsers(User originalUser, User fetchedUser) {

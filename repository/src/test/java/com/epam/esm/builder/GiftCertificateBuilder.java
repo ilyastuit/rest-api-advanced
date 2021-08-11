@@ -126,7 +126,8 @@ public class GiftCertificateBuilder implements Cloneable {
                 this.duration,
                 this.createDate,
                 this.lastUpdateDate,
-                this.tags
+                this.tags,
+                null
         );
     }
 
