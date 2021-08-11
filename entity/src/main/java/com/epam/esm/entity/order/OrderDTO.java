@@ -2,6 +2,7 @@ package com.epam.esm.entity.order;
 
 import com.epam.esm.entity.giftcertificate.GiftCertificateDTO;
 import com.epam.esm.entity.user.UserDTO;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -27,7 +28,9 @@ public class OrderDTO {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime lastUpdateDate;
 
+    @JsonBackReference("user-order")
     private UserDTO user;
+    @JsonBackReference("order-certificate")
     private GiftCertificateDTO giftCertificate;
 
     public OrderDTO() {

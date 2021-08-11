@@ -66,12 +66,14 @@ public class GenerateParamHandler implements Handler {
             LocalDateTime lastUpdateDate = LocalDateTime.now();
 
             GiftCertificate giftCertificate = new GiftCertificate(
+                    null,
                     name,
                     description,
                     price,
                     duration,
                     createDate,
                     lastUpdateDate,
+                    null,
                     null
             );
 
@@ -105,6 +107,7 @@ public class GenerateParamHandler implements Handler {
             LocalDateTime lastUpdateDate = LocalDateTime.now();
 
             User user = new User(
+                    null,
                     email,
                     password,
                     createDate,

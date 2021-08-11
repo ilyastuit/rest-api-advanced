@@ -1,9 +1,7 @@
 package com.epam.esm.service.tag.validation;
 
-import com.epam.esm.entity.giftcertificate.GiftCertificateDTO;
 import com.epam.esm.entity.tag.TagDTO;
 import com.epam.esm.service.ValidatorUtil;
-import com.epam.esm.service.giftcertificate.validation.GiftCertificateValidator;
 import com.epam.esm.service.tag.TagService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,10 +11,6 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;

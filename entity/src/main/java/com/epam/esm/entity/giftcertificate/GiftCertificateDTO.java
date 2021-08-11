@@ -1,8 +1,9 @@
 package com.epam.esm.entity.giftcertificate;
 
-import com.epam.esm.entity.tag.Tag;
+import com.epam.esm.entity.order.OrderDTO;
 import com.epam.esm.entity.tag.TagDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -29,6 +30,10 @@ public class GiftCertificateDTO {
 
     @JsonDeserialize(as= ArrayList.class, contentAs= TagDTO.class)
     private List<TagDTO> tags;
+
+    @JsonDeserialize(as= ArrayList.class, contentAs= OrderDTO.class)
+    @JsonManagedReference("order-certificate")
+    private List<OrderDTO> orders;
 
     public Integer getId() {
         return id;
@@ -92,6 +97,14 @@ public class GiftCertificateDTO {
 
     public void setTags(List<TagDTO> tags) {
         this.tags = tags;
+    }
+
+    public List<OrderDTO> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<OrderDTO> orders) {
+        this.orders = orders;
     }
 
     @Override

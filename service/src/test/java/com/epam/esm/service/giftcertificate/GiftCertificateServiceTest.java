@@ -8,6 +8,7 @@ import com.epam.esm.repository.giftcertificate.GiftCertificateRepository;
 import com.epam.esm.service.exceptions.GiftCertificateDeleteRestriction;
 import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
+import com.epam.esm.service.exceptions.TagNotFoundException;
 import com.epam.esm.service.tag.TagDTOMapper;
 import com.epam.esm.service.tag.TagService;
 import org.junit.jupiter.api.Assertions;
@@ -19,7 +20,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -48,31 +48,32 @@ public class GiftCertificateServiceTest {
 
     @Test
     void testSave() throws TagNameAlreadyExistException {
-        int ID = 1;
+        GiftCertificate giftCertificate = getCertificate();
+        int ID = getCertificate().getId();
 
         when(
                 repository.save(
-                        any(MapSqlParameterSource.class)
+                        any(GiftCertificate.class)
                 )
-        ).thenReturn(ID);
+        ).thenReturn(giftCertificate);
 
         assertEquals(ID, service.save(getCertificateDTO()));
-        verify(repository, times(1)).save(any(MapSqlParameterSource.class));
+        verify(repository, times(1)).save(any(GiftCertificate.class));
     }
 
     @Test
     void testUpdate() throws TagNameAlreadyExistException {
+        GiftCertificate giftCertificate = getCertificate();
         int ID = 1;
 
         when(
-                repository.update(
-                        anyInt(),
-                        any(MapSqlParameterSource.class)
+                repository.save(
+                        any(GiftCertificate.class)
                 )
-        ).thenReturn(ID);
+        ).thenReturn(giftCertificate);
 
         assertEquals(ID, service.update(ID, getCertificateDTO()));
-        verify(repository, times(1)).update(anyInt(), any(MapSqlParameterSource.class));
+        verify(repository, times(1)).save(any(GiftCertificate.class));
     }
 
     @Test
@@ -95,7 +96,7 @@ public class GiftCertificateServiceTest {
         List<GiftCertificate> list = Collections.singletonList(giftCertificate);
 
         when(
-                repository.findByIdWithTags(ID)
+                repository.findById(ID)
         ).thenReturn(list);
 
         GiftCertificate entity = service.getOne(ID, true);
@@ -109,7 +110,7 @@ public class GiftCertificateServiceTest {
         assertEquals(giftCertificate.getLastUpdateDate(), entity.getLastUpdateDate());
         assertEquals(giftCertificate.getTags().size(), entity.getTags().size());
 
-        verify(repository, times(1)).findByIdWithTags(ID);
+        verify(repository, times(1)).findById(ID);
     }
 
     @Test
@@ -164,14 +165,14 @@ public class GiftCertificateServiceTest {
         int ID = 1;
 
         when(
-                repository.findByIdWithTags(ID)
+                repository.findById(ID)
         ).thenReturn(new ArrayList<>());
 
         Assertions.assertThrows(GiftCertificateNotFoundException.class, () -> {
             service.getOne(ID, true);
         });
 
-        verify(repository, times(1)).findByIdWithTags(ID);
+        verify(repository, times(1)).findById(ID);
     }
 
     @Test
@@ -181,13 +182,13 @@ public class GiftCertificateServiceTest {
         Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findAllWithTags(pageable)
+                repository.findAll(pageable)
         ).thenReturn(page);
 
         Page<GiftCertificate> fetchedPage = service.getAll(Optional.of("true"), pageable);
 
         assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
-        verify(repository, times(1)).findAllWithTags(pageable);
+        verify(repository, times(1)).findAll(pageable);
     }
 
     @Test
@@ -213,13 +214,13 @@ public class GiftCertificateServiceTest {
         Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findAllWithTagsByTagNames(new String[] {"tag name"}, pageable)
+                repository.findAllByTagNames(new String[]{"tag name"}, pageable)
         ).thenReturn(page);
 
-        Page<GiftCertificate> fetchedPage = service.getAllByTagNames(new String[] {"tag name"}, pageable);
+        Page<GiftCertificate> fetchedPage = service.getAllByTagNames(new String[]{"tag name"}, pageable);
 
         assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
-        verify(repository, times(1)).findAllWithTagsByTagNames(new String[] {"tag name"}, pageable);
+        verify(repository, times(1)).findAllByTagNames(new String[]{"tag name"}, pageable);
     }
 
     @Test
@@ -247,17 +248,17 @@ public class GiftCertificateServiceTest {
         Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "name"));
 
         when(
-                repository.findAllWithTagsByNameOrDescription(name, pageable)
+                repository.findAllByNameOrDescription(name, pageable)
         ).thenReturn(page);
 
         Page<GiftCertificate> fetchedPage = service.getAllByNameOrDescriptionWithTags(name, pageable);
 
         assertEquals(page.getTotalElements(), fetchedPage.getTotalElements());
-        verify(repository, times(1)).findAllWithTagsByNameOrDescription(name, pageable);
+        verify(repository, times(1)).findAllByNameOrDescription(name, pageable);
     }
 
     @Test
-    void testAssignTagToCertificateNotAlreadyAssigned() {
+    void testAssignTagToCertificateNotAlreadyAssigned() throws GiftCertificateNotFoundException, TagNotFoundException {
         when(tagService.isTagAlreadyAssignedToGiftCertificate(anyInt(), anyInt())).thenReturn(false);
         doNothing().when(tagService).assignTagToGiftCertificate(anyInt(), anyInt());
 
@@ -268,7 +269,7 @@ public class GiftCertificateServiceTest {
     }
 
     @Test
-    void testAssignTagToCertificateAlreadyAssigned() {
+    void testAssignTagToCertificateAlreadyAssigned() throws GiftCertificateNotFoundException, TagNotFoundException {
         when(tagService.isTagAlreadyAssignedToGiftCertificate(anyInt(), anyInt())).thenReturn(true);
 
         service.assignTagToCertificate(anyInt(), anyInt());
@@ -302,11 +303,11 @@ public class GiftCertificateServiceTest {
     void testChangeName() {
         int ID = 1;
         String name = "New Name";
-        doNothing().when(repository).changeName(ID, name);
+        doNothing().when(repository).changeNameById(ID, name);
 
         service.changeName(ID, name);
 
-        verify(repository, times(1)).changeName(ID, name);
+        verify(repository, times(1)).changeNameById(ID, name);
     }
 
 
@@ -319,6 +320,7 @@ public class GiftCertificateServiceTest {
                 100,
                 Timestamp.valueOf("2021-06-24 11:48:23").toLocalDateTime(),
                 Timestamp.valueOf("2021-06-24 11:48:23").toLocalDateTime(),
+                null,
                 null
         );
     }

@@ -16,16 +16,5 @@ $$
             EXECUTE 'ALTER TABLE orders.gift_certificate DROP CONSTRAINT IF EXISTS fk_user';
         END IF;
 
-
-        IF EXISTS(
-                   SELECT table_name, table_schema
-                   FROM information_schema.tables
-                   WHERE table_name = 'gift_certificate' AND table_schema = 'orders'
-               ) AND EXISTS(
-                    SELECT 1 FROM pg_type WHERE typname = 'order_status'
-               )
-        THEN
-            EXECUTE 'DROP TYPE orders.order_status CASCADE;';
-        END IF;
     END
 $$;

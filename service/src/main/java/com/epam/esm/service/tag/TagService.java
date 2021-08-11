@@ -3,8 +3,11 @@ package com.epam.esm.service.tag;
 import com.epam.esm.entity.tag.Tag;
 import com.epam.esm.entity.tag.TagDTO;
 import com.epam.esm.repository.tag.TagRepository;
+import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
 import com.epam.esm.service.exceptions.TagNotFoundException;
+import com.epam.esm.service.giftcertificate.GiftCertificateService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,17 +19,19 @@ import java.util.List;
 public class TagService {
 
     private final TagRepository repository;
+    private final GiftCertificateService giftCertificateService;
     private final TagDTOMapper dtoMapper;
 
-    public TagService(TagRepository repository, TagDTOMapper dtoMapper) {
+    public TagService(TagRepository repository, @Lazy GiftCertificateService giftCertificateService, TagDTOMapper dtoMapper) {
         this.repository = repository;
+        this.giftCertificateService = giftCertificateService;
         this.dtoMapper = dtoMapper;
     }
 
     public int save(TagDTO tagDTO) throws TagNameAlreadyExistException {
         int id = 0;
         try {
-            id = this.repository.save(dtoMapper.dtoToTag(tagDTO));
+            id = this.repository.save(dtoMapper.dtoToTag(tagDTO)).getId();
         } catch (DuplicateKeyException exception) {
             throw new TagNameAlreadyExistException(tagDTO.getName());
         }
@@ -47,7 +52,8 @@ public class TagService {
         return this.repository.findAll(pageable);
     }
 
-    public void deleteById(int id) {
+    public void deleteById(int id) throws TagNotFoundException {
+        this.getById(id);
         this.repository.deleteById(id);
     }
 
@@ -73,7 +79,9 @@ public class TagService {
         return getFromList(this.repository.findAssignedTagToCertificate(certificateId, tagId)) != null;
     }
 
-    public void assignTagToGiftCertificate(int certificateId, int tagId) {
+    public void assignTagToGiftCertificate(int certificateId, int tagId) throws GiftCertificateNotFoundException, TagNotFoundException {
+        giftCertificateService.getOne(certificateId, false);
+        this.getById(tagId);
         this.repository.assignTagToGiftCertificate(certificateId, tagId);
     }
 
@@ -86,6 +94,9 @@ public class TagService {
     }
 
     private Tag getFromList(List<Tag> tags) {
-        return tags.stream().findAny().orElse(null);
+        if (tags != null) {
+            return tags.stream().findAny().orElse(null);
+        }
+        return null;
     }
 }

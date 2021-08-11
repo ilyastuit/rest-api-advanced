@@ -2,8 +2,8 @@ package com.epam.esm.entity.order;
 
 import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.entity.giftcertificate.GiftCertificateModel;
-import com.epam.esm.entity.user.User;
 import com.epam.esm.entity.user.UserModel;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -34,7 +34,9 @@ public class OrderModel extends RepresentationModel<OrderModel> {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDateTime lastUpdateDate;
 
+    @JsonBackReference("user-order")
     private UserModel user;
+    @JsonBackReference("order-certificate")
     private GiftCertificateModel giftCertificate;
 
 }

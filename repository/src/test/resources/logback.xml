@@ -1,1 +1,5 @@
-<logger name="org.flywaydb" level="ERROR"/>
+<configuration>
+<springProfile name="test">
+    <logger name="org.flywaydb" level="ERROR"/>
+</springProfile>
+</configuration>

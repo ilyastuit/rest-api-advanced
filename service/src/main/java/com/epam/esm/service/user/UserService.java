@@ -1,7 +1,6 @@
 package com.epam.esm.service.user;
 
 import com.epam.esm.entity.user.User;
-import com.epam.esm.entity.user.UserDTO;
 import com.epam.esm.repository.user.UserRepository;
 import com.epam.esm.service.exceptions.UserNotFoundException;
 import org.springframework.data.domain.Page;

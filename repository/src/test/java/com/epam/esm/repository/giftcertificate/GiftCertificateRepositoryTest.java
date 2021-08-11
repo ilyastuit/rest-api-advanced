@@ -5,34 +5,40 @@ import com.epam.esm.builder.GiftCertificateBuilder;
 import com.epam.esm.builder.TagBuilder;
 import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.entity.tag.Tag;
+import com.epam.esm.TestRepositoryConfig;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.context.TestPropertySource;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.epam.esm.builder.UserBuilder.ALL_USERS_COUNT;
 import static org.junit.jupiter.api.Assertions.*;
 import static com.epam.esm.builder.GiftCertificateBuilder.*;
 
+
+
+@SpringBootTest(classes = TestRepositoryConfig.class)
+@TestPropertySource("classpath:application-test.properties")
 public class GiftCertificateRepositoryTest {
 
-    private static GiftCertificateRepository giftCertificateRepository;
+    @Autowired
+    private GiftCertificateRepository giftCertificateRepository;
 
     private final GiftCertificateBuilder builder = new GiftCertificateBuilder();
     private final TagBuilder tagBuilder = new TagBuilder();
 
     @BeforeAll
     public static void setUpBeforeClass() throws Exception {
-        giftCertificateRepository = TestEnvironment.getGiftCertificateRepository();
         Flyway flyway = TestEnvironment.getFlyway();
         flyway.clean();
         flyway.migrate();
@@ -40,15 +46,12 @@ public class GiftCertificateRepositoryTest {
 
     @Nested
     class UpdateTest {
-
-        private final GiftCertificateRepository giftCertificateRepository;
         private final Flyway flyway;
 
         private final GiftCertificateBuilder builder = new GiftCertificateBuilder();
         private final TagBuilder tagBuilder = new TagBuilder();
 
         public UpdateTest() throws IOException {
-            this.giftCertificateRepository = TestEnvironment.getGiftCertificateRepository();
             this.flyway = TestEnvironment.getFlyway();
         }
 
@@ -62,9 +65,9 @@ public class GiftCertificateRepositoryTest {
         void successSave() {
             assertEquals(ALL_CERTIFICATES_COUNT, giftCertificateRepository.findAll(Pageable.ofSize(ALL_CERTIFICATES_COUNT)).getTotalElements());
 
-            assertEquals(ALL_CERTIFICATES_COUNT + 1, giftCertificateRepository.save(builder.getPreparedParams()));
+            assertEquals(EXIST_CERTIFICATE_ID, giftCertificateRepository.save(builder.build()).getId());
 
-            assertEquals(ALL_CERTIFICATES_COUNT + 1, giftCertificateRepository.findById(ALL_CERTIFICATES_COUNT + 1).get(0).getId());
+            assertEquals(EXIST_CERTIFICATE_ID, giftCertificateRepository.findById(EXIST_CERTIFICATE_ID).get(0).getId());
         }
 
         @Test
@@ -73,14 +76,14 @@ public class GiftCertificateRepositoryTest {
 
             List<Tag> notExistTags = new ArrayList<>();
             notExistTags.add(tagBuilder.withName(TagBuilder.NOT_EXIST_TAG_NAME).build());
-            assertEquals(ALL_CERTIFICATES_COUNT + 1, giftCertificateRepository.save(builder.withTags(notExistTags).getPreparedParams()));
+            assertEquals(EXIST_CERTIFICATE_ID, giftCertificateRepository.save(builder.withTags(notExistTags).build()).getId());
 
-            assertEquals(ALL_CERTIFICATES_COUNT + 1, giftCertificateRepository.findById(ALL_CERTIFICATES_COUNT + 1).get(0).getId());
+            assertEquals(EXIST_CERTIFICATE_ID, giftCertificateRepository.findById(EXIST_CERTIFICATE_ID).get(0).getId());
         }
 
         @Test
         void successUpdate() {
-            assertEquals(DEFAULT_CERTIFICATE_ID, giftCertificateRepository.update(DEFAULT_CERTIFICATE_ID, builder.getPreparedParams()));
+            assertEquals(DEFAULT_CERTIFICATE_ID, giftCertificateRepository.save(builder.build()).getId());
 
             GiftCertificate originalCertificate = builder.withId(DEFAULT_CERTIFICATE_ID).build();
             assertEquals(1, giftCertificateRepository.findById(DEFAULT_CERTIFICATE_ID).size());
@@ -91,20 +94,10 @@ public class GiftCertificateRepositoryTest {
 
         @Test
         void successDeleteById() {
-            GiftCertificate originalCertificate = builder.withId(ID_WITHOUT_ORDER).build();
+            GiftCertificate originalCertificate = builder.withId(6).build();
             giftCertificateRepository.deleteById(originalCertificate.getId());
-            assertEquals(ALL_CERTIFICATES_COUNT - 1, giftCertificateRepository.findAll(Pageable.ofSize(ALL_CERTIFICATES_COUNT - 1)).getTotalElements());
-            assertEquals(0, giftCertificateRepository.findById(originalCertificate.getId()).size());
-        }
-
-        @Test
-        void failDeleteById() {
-            GiftCertificate originalCertificate = builder.build();
-            assertThrows(DataIntegrityViolationException.class, () -> {
-                giftCertificateRepository.deleteById(originalCertificate.getId());
-            });
-            assertEquals(ALL_CERTIFICATES_COUNT, giftCertificateRepository.findAll(Pageable.ofSize(ALL_CERTIFICATES_COUNT)).getTotalElements());
-            assertEquals(1, giftCertificateRepository.findById(originalCertificate.getId()).size());
+            assertEquals(ALL_CERTIFICATES_COUNT - 1, (long) giftCertificateRepository.findAll(Pageable.unpaged()).getContent().size());
+            assertFalse(giftCertificateRepository.findById(originalCertificate.getId()).isPresent());
         }
 
         @Test
@@ -113,7 +106,7 @@ public class GiftCertificateRepositoryTest {
             String newName = "New Name to Certificate";
 
             assertEquals(originalCertificate.getName(), giftCertificateRepository.findById(DEFAULT_CERTIFICATE_ID).get(0).getName());
-            giftCertificateRepository.changeName(originalCertificate.getId(), newName);
+            giftCertificateRepository.changeNameById(originalCertificate.getId(), newName);
             GiftCertificate fetchedCertificate = giftCertificateRepository.findById(DEFAULT_CERTIFICATE_ID).get(0);
 
             assertEquals(newName, fetchedCertificate.getName());
@@ -138,8 +131,8 @@ public class GiftCertificateRepositoryTest {
         GiftCertificate originalCertificate = builder.withId(EXIST_CERTIFICATE_ID).build();
         int originalCertificateId = originalCertificate.getId();
 
-        assertEquals(1, giftCertificateRepository.findByIdWithTags(originalCertificateId).size());
-        GiftCertificate fetchedCertificate = giftCertificateRepository.findByIdWithTags(originalCertificateId).get(0);
+        assertEquals(1, giftCertificateRepository.findById(originalCertificateId).size());
+        GiftCertificate fetchedCertificate = giftCertificateRepository.findById(originalCertificateId).get(0);
 
         assertCertificates(originalCertificate, fetchedCertificate);
         assertTags(originalCertificate, fetchedCertificate);
@@ -147,7 +140,7 @@ public class GiftCertificateRepositoryTest {
 
     @Test
     void emptyFindById() {
-        assertEquals(0, giftCertificateRepository.findById(NOT_EXIST_CERTIFICATE_ID).size());
+        assertNull(giftCertificateRepository.findById(NOT_EXIST_CERTIFICATE_ID));
     }
 
     @Test
@@ -157,14 +150,14 @@ public class GiftCertificateRepositoryTest {
 
     @Test
     void successFindAllWithTags() {
-        assertEquals(ALL_CERTIFICATES_COUNT, giftCertificateRepository.findAllWithTags(Pageable.ofSize(ALL_CERTIFICATES_COUNT)).getTotalElements());
+        assertEquals(ALL_CERTIFICATES_COUNT, giftCertificateRepository.findAll(Pageable.ofSize(ALL_CERTIFICATES_COUNT)).getTotalElements());
     }
 
     @Test
     void successFindAllWithTagsByTagName() {
         Tag originalTag = tagBuilder.withId(TagBuilder.EXIST_TAG_ID).withName(TagBuilder.EXIST_TAG_NAME).build();
-        assertEquals(1, giftCertificateRepository.findAllWithTagsByTagNames(new String[]{originalTag.getName()}, Pageable.ofSize(1)).getTotalElements());
-        GiftCertificate fetchedCertificate = giftCertificateRepository.findAllWithTagsByTagNames(new String[]{originalTag.getName()}, Pageable.ofSize(1)).stream().findAny().orElse(null);
+        assertEquals(1, giftCertificateRepository.findAllByTagNames(new String[]{originalTag.getName()}, Pageable.ofSize(1)).getTotalElements());
+        GiftCertificate fetchedCertificate = giftCertificateRepository.findAllByTagNames(new String[]{originalTag.getName()}, Pageable.ofSize(1)).stream().findAny().orElse(null);
         assertNotNull(fetchedCertificate);
 
         Tag fetchedTag = fetchedCertificate.getTags()
@@ -178,13 +171,13 @@ public class GiftCertificateRepositoryTest {
     @Test
     void emptyFindAllWithTagsByTagName() {
         Tag originalTag = tagBuilder.withName(TagBuilder.NOT_EXIST_TAG_NAME).build();
-        assertEquals(0, giftCertificateRepository.findAllWithTagsByTagNames(new String[]{originalTag.getName()}, Pageable.ofSize(1)).getTotalElements());
+        assertEquals(0, giftCertificateRepository.findAllByTagNames(new String[]{originalTag.getName()}, Pageable.ofSize(1)).getTotalElements());
     }
 
     @Test
     void emptyFindAllWithTagsBySeveralTags() {
         Tag originalTag = tagBuilder.withName(TagBuilder.NOT_EXIST_TAG_NAME).build();
-        assertEquals(0, giftCertificateRepository.findAllWithTagsByTagNames(new String[]{originalTag.getName(), "second"}, Pageable.ofSize(1)).getTotalElements());
+        assertEquals(0, giftCertificateRepository.findAllByTagNames(new String[]{originalTag.getName(), "second"}, Pageable.ofSize(1)).getTotalElements());
     }
 
     @Test
@@ -224,8 +217,8 @@ public class GiftCertificateRepositoryTest {
     @Test
     void successFindAllWithTagsByName() {
         GiftCertificate originalCertificate = builder.build();
-        assertEquals(1, giftCertificateRepository.findAllWithTagsByNameOrDescription(originalCertificate.getName(), Pageable.ofSize(1)).getTotalElements());
-        GiftCertificate fetchedCertificate = giftCertificateRepository.findAllWithTagsByNameOrDescription(originalCertificate.getName(), Pageable.ofSize(1)).stream().findAny().orElse(null);
+        assertEquals(1, giftCertificateRepository.findAllByNameOrDescription(originalCertificate.getName(), Pageable.ofSize(1)).getTotalElements());
+        GiftCertificate fetchedCertificate = giftCertificateRepository.findAllByNameOrDescription(originalCertificate.getName(), Pageable.ofSize(1)).stream().findAny().orElse(null);
         assertNotNull(fetchedCertificate);
 
         assertCertificates(originalCertificate, fetchedCertificate);
@@ -235,14 +228,14 @@ public class GiftCertificateRepositoryTest {
     @Test
     void emptyFindAllAllWithTagsByName() {
         GiftCertificate originalCertificate = builder.withName(NOT_EXIST_CERTIFICATE_NAME).build();
-        assertEquals(0, giftCertificateRepository.findAllWithTagsByNameOrDescription(originalCertificate.getName(), Pageable.ofSize(1)).getTotalElements());
+        assertEquals(0, giftCertificateRepository.findAllByNameOrDescription(originalCertificate.getName(), Pageable.ofSize(1)).getTotalElements());
     }
 
     @Test
     void successFindAllAllWithTagsByDescription() {
         GiftCertificate originalCertificate = builder.build();
-        assertEquals(1, giftCertificateRepository.findAllWithTagsByNameOrDescription(originalCertificate.getDescription(), Pageable.ofSize(1)).getTotalElements());
-        GiftCertificate fetchedCertificate = giftCertificateRepository.findAllWithTagsByNameOrDescription(originalCertificate.getDescription(), Pageable.ofSize(1)).stream().findAny().orElse(null);
+        assertEquals(1, giftCertificateRepository.findAllByNameOrDescription(originalCertificate.getDescription(), Pageable.ofSize(1)).getTotalElements());
+        GiftCertificate fetchedCertificate = giftCertificateRepository.findAllByNameOrDescription(originalCertificate.getDescription(), Pageable.ofSize(1)).stream().findAny().orElse(null);
         assertNotNull(fetchedCertificate);
 
         assertCertificates(originalCertificate, fetchedCertificate);
@@ -252,7 +245,7 @@ public class GiftCertificateRepositoryTest {
     @Test
     void emptyFindAllAllWithTagsByDescription() {
         GiftCertificate originalCertificate = builder.withDescription(NOT_EXIST_CERTIFICATE_DESCRIPTION).build();
-        assertEquals(0, giftCertificateRepository.findAllWithTagsByNameOrDescription(originalCertificate.getDescription(), Pageable.ofSize(1)).getTotalElements());
+        assertEquals(0, giftCertificateRepository.findAllByNameOrDescription(originalCertificate.getDescription(), Pageable.ofSize(1)).getTotalElements());
     }
 
     private void assertCertificates(GiftCertificate originalCertificate, GiftCertificate fetchedCertificate) {

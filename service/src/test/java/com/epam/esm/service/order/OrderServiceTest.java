@@ -17,9 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-import java.util.Collection;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -51,11 +49,11 @@ public class OrderServiceTest {
 
         when(userService.getOne(1)).thenReturn(user);
         when(giftCertificateService.getOne(1, false)).thenReturn(giftCertificate);
-        doNothing().when(orderRepository).orderCertificateForUser(any(MapSqlParameterSource.class));
+        when(orderRepository.save(any(Order.class))).thenReturn(any(Order.class));
 
         orderService.orderCertificateForUser(1, 1);
 
-        verify(orderRepository, times(1)).orderCertificateForUser(any(MapSqlParameterSource.class));
+        verify(orderRepository, times(1)).save(any(Order.class));
         verify(userService, times(1)).getOne(1);
         verify(giftCertificateService, times(1)).getOne(1, false);
     }
@@ -65,10 +63,10 @@ public class OrderServiceTest {
         Pageable pageable = Pageable.unpaged();
         Page<Order> page = new PageImpl<>(Collections.emptyList());
 
-        when(orderRepository.findOrdersOfUser(1, pageable)).thenReturn(page);
+        when(orderRepository.findByUserId(1, pageable)).thenReturn(page);
 
         orderService.getOrdersOfUser(1, pageable);
 
-        verify(orderRepository, times(1)).findOrdersOfUser(1, pageable);
+        verify(orderRepository, times(1)).findByUserId(1, pageable);
     }
 }

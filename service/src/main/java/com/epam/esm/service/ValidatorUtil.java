@@ -16,6 +16,7 @@ public class ValidatorUtil {
 
     /**
      * Checks if value can be used for db sorting (asc|desc).
+     *
      * @param value String Optional representation of sort value .
      * @return boolean.
      */
@@ -25,6 +26,7 @@ public class ValidatorUtil {
 
     /**
      * Checks whether value is valid boolean and returns it's value.
+     *
      * @param value String Optional representation of boolean value.
      * @return boolean.
      */
@@ -73,7 +75,7 @@ public class ValidatorUtil {
 
         Map<String, String> data = validationErrors.getErrors();
 
-        for (Map.Entry<String, String> error: data.entrySet()) {
+        for (Map.Entry<String, String> error : data.entrySet()) {
             jgen.writeStringField(error.getKey(), error.getValue());
         }
 

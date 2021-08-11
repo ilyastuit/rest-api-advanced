@@ -2,8 +2,6 @@ package com.epam.esm.service.giftcertificate;
 
 import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.entity.giftcertificate.GiftCertificateDTO;
-import com.epam.esm.entity.tag.Tag;
-import com.epam.esm.entity.tag.TagDTO;
 import com.epam.esm.service.exceptions.GiftCertificateDeleteRestriction;
 import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
 import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
@@ -14,10 +12,8 @@ import com.epam.esm.service.tag.TagService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -46,30 +42,25 @@ public class GiftCertificateService {
         GiftCertificate giftCertificate = dtoMapper.giftCertificateDTOToGiftCertificate(giftCertificateDTO);
 
         giftCertificate.setCreateDate(LocalDateTime.now());
+        giftCertificate.setLastUpdateDate(LocalDateTime.now());
 
-        MapSqlParameterSource params = prepareParams(giftCertificate);
-        params.addValue("create_date", Timestamp.valueOf(giftCertificate.getCreateDate()));
-
-        int id = this.certificateRepository.save(params);
-        this.updateTags(id, giftCertificate.getTags());
-        return id;
+        return this.certificateRepository.save(giftCertificate).getId();
     }
 
     public int update(int id, GiftCertificateDTO giftCertificateDTO) throws TagNameAlreadyExistException {
         GiftCertificate giftCertificate = dtoMapper.giftCertificateDTOToGiftCertificate(giftCertificateDTO);
-
-        this.updateTags(id, giftCertificate.getTags());
-        return this.certificateRepository.update(id, prepareParams(giftCertificate));
+        giftCertificate.setId(id);
+        return this.certificateRepository.save(giftCertificate).getId();
     }
 
-    public void assignTagToCertificate(int certificateId, int tagId) {
+    public void assignTagToCertificate(int certificateId, int tagId) throws GiftCertificateNotFoundException, TagNotFoundException {
         if (!this.tagService.isTagAlreadyAssignedToGiftCertificate(certificateId, tagId)) {
             this.tagService.assignTagToGiftCertificate(certificateId, tagId);
         }
     }
 
     public void changeName(int certificateId, String newName) {
-        this.certificateRepository.changeName(certificateId, newName);
+        this.certificateRepository.changeNameById(certificateId, newName);
     }
 
     public void delete(int id) throws GiftCertificateDeleteRestriction {
@@ -85,12 +76,7 @@ public class GiftCertificateService {
     }
 
     public GiftCertificate getOne(int id, boolean withTags) throws GiftCertificateNotFoundException {
-        GiftCertificate giftCertificate = null;
-        if (withTags) {
-            giftCertificate = getFromList(this.certificateRepository.findByIdWithTags(id));
-        } else {
-            giftCertificate = getFromList(this.certificateRepository.findById(id));
-        }
+        GiftCertificate giftCertificate = getFromList(this.certificateRepository.findById(id));
 
         if (giftCertificate == null) {
             throw new GiftCertificateNotFoundException(id);
@@ -100,15 +86,11 @@ public class GiftCertificateService {
     }
 
     public Page<GiftCertificate> getAll(Optional<String> tags, Pageable pageable) {
-        if (tags.isPresent() && Boolean.parseBoolean(tags.get())) {
-            return this.certificateRepository.findAllWithTags(pageable);
-        } else {
-            return this.certificateRepository.findAll(pageable);
-        }
+        return this.certificateRepository.findAll(pageable);
     }
 
     public Page<GiftCertificate> getAllByTagNames(String[] tagNames, Pageable pageable) {
-        return this.certificateRepository.findAllWithTagsByTagNames(tagNames, pageable);
+        return this.certificateRepository.findAllByTagNames(tagNames, pageable);
     }
 
     public Page<GiftCertificate> getAllByNameOrDescription(String text, Pageable pageable) {
@@ -116,44 +98,13 @@ public class GiftCertificateService {
     }
 
     public Page<GiftCertificate> getAllByNameOrDescriptionWithTags(String text, Pageable pageable) {
-        return this.certificateRepository.findAllWithTagsByNameOrDescription(text, pageable);
+        return this.certificateRepository.findAllByNameOrDescription(text, pageable);
     }
 
     private GiftCertificate getFromList(List<GiftCertificate> certificateList) {
-        return certificateList.stream().findAny().orElse(null);
-    }
-
-    private void updateTags(int certificateId, List<Tag> tags) throws TagNameAlreadyExistException {
-        try {
-            for (Tag tag: tags) {
-                int tagId;
-                if (!tagService.isExistByName(tag.getName())) {
-                    tagId = tagService.save(tagDTOMapper.tagToDTO(tag));
-                } else {
-                    tagId = tagService.getByName(tag.getName()).getId();
-                }
-                if (!tagService.isTagAlreadyAssignedToGiftCertificate(certificateId, tagId)) {
-                    tagService.assignTagToGiftCertificate(certificateId, tagId);
-                }
-            }
-        } catch (TagNotFoundException ignored) {
+        if (certificateList != null) {
+            return certificateList.stream().findAny().orElse(null);
         }
-    }
-
-    private MapSqlParameterSource prepareParams(GiftCertificate giftCertificate) {
-        giftCertificate.setLastUpdateDate(LocalDateTime.now());
-
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("name", giftCertificate.getName());
-        params.addValue("description", giftCertificate.getDescription());
-        params.addValue("price", giftCertificate.getPrice());
-        params.addValue("duration", giftCertificate.getDuration());
-        params.addValue("last_update_date", Timestamp.valueOf(giftCertificate.getLastUpdateDate()));
-
-        if (giftCertificate.getTags() != null && !giftCertificate.getTags().isEmpty()) {
-            params.addValue("tags", giftCertificate.getTags());
-        }
-
-        return params;
+        return null;
     }
 }
