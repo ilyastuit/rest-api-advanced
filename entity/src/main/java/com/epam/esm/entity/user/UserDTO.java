@@ -2,6 +2,7 @@ package com.epam.esm.entity.user;
 
 import com.epam.esm.entity.order.OrderDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -31,6 +32,7 @@ public class UserDTO {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @JsonDeserialize(as = ArrayList.class, contentAs = OrderDTO.class)
+    @JsonManagedReference("user-order")
     private List<OrderDTO> orders;
 
     public UserDTO(int id, String email, String password, LocalDateTime createDate, LocalDateTime lastUpdateDate, List<OrderDTO> orders) {

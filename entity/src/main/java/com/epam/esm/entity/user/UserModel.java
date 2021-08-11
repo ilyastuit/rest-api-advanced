@@ -2,6 +2,7 @@ package com.epam.esm.entity.user;
 
 import com.epam.esm.entity.order.OrderModel;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
@@ -34,6 +35,7 @@ public class UserModel extends RepresentationModel<UserModel> {
     private LocalDateTime lastUpdateDate;
 
     @JsonDeserialize(as= ArrayList.class, contentAs= OrderModel.class)
+    @JsonManagedReference("user-order")
     private List<OrderModel> orders;
 
 }
