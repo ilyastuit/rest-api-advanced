@@ -25,7 +25,8 @@ subprojects {
     dependencies {
 
         implementation 'org.springframework.hateoas:spring-hateoas'
-        implementation 'org.springframework.data:spring-data-commons'
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        implementation 'org.springframework.boot:spring-boot-starter-test'
 
         implementation 'org.postgresql:postgresql:42.2.22'
 
