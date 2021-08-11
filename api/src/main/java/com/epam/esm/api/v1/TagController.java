@@ -101,7 +101,7 @@ public class TagController {
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void delete(@PathVariable("id") int id) {
+    public void delete(@PathVariable("id") int id) throws TagNotFoundException {
         this.tagService.deleteById(id);
     }
 

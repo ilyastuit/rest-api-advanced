@@ -4,10 +4,7 @@ import com.epam.esm.api.assembler.GiftCertificateModelAssembler;
 import com.epam.esm.entity.giftcertificate.GiftCertificate;
 import com.epam.esm.entity.giftcertificate.GiftCertificateDTO;
 import com.epam.esm.entity.giftcertificate.GiftCertificateModel;
-import com.epam.esm.service.exceptions.GiftCertificateDeleteRestriction;
-import com.epam.esm.service.exceptions.GiftCertificateNotFoundException;
-import com.epam.esm.service.exceptions.GiftCertificateSearchParameterNotProvidedException;
-import com.epam.esm.service.exceptions.TagNameAlreadyExistException;
+import com.epam.esm.service.exceptions.*;
 import com.epam.esm.service.giftcertificate.validation.GiftCertificateValidationErrors;
 import com.epam.esm.service.giftcertificate.GiftCertificateService;
 import com.epam.esm.service.ValidatorUtil;
@@ -195,7 +192,7 @@ public class GiftCertificateController {
     public void assignTag(
             @PathVariable("giftId") int giftId,
             @PathVariable("tagId") int tagId
-    ) {
+    ) throws GiftCertificateNotFoundException, TagNotFoundException {
         this.giftCertificateService.assignTagToCertificate(giftId, tagId);
     }
 
